@@ -83,6 +83,7 @@
   .jdots{display:flex; gap:5px; justify-content:center; margin-top:5px;}
   .jd{width:9px;height:9px;border-radius:50%; background:var(--gold); box-shadow:0 0 6px 1px #ffd23c99; transition:opacity .2s, transform .2s;}
   .jd.used{background:#31344c; box-shadow:none; opacity:.5; transform:scale(.68);}
+  #jokerTag.none .lbl{color:var(--danger);}
 
   /* ---------- Touch controls ---------- */
   #controls{
@@ -131,6 +132,14 @@
     display:flex; align-items:center; justify-content:center; color:var(--ink-dim);
   }
   #quitBtn:active{transform:scale(.9); color:var(--ink);}
+  #muteBtn{
+    position:absolute; z-index:10; pointer-events:auto;
+    top:calc(env(safe-area-inset-top,0px) + 106px); left:calc(env(safe-area-inset-left,0px) + 14px);
+    width:34px; height:34px; border-radius:9px; border:1px solid var(--panel-line);
+    background:var(--panel); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    display:flex; align-items:center; justify-content:center; font-size:15px; line-height:1;
+  }
+  #muteBtn:active{transform:scale(.9);}
 
   /* ---------- Overlays ---------- */
   .overlay{
@@ -182,10 +191,27 @@
     position:relative; transition:transform .15s ease, border-color .15s ease;
   }
   .skinDot.selected{border-color:#fff; box-shadow:0 0 0 3px #ffffff22, 0 0 14px currentColor; transform:scale(1.1);}
-  .skinName{
-    font-size:9px; text-align:center; color:var(--ink-dim); margin-top:6px; letter-spacing:.04em;
-    height:12px; overflow:hidden;
+  .shapeGrid{display:grid; grid-template-columns:repeat(4,1fr); gap:14px; max-width:260px; margin:0 auto;}
+  .shapeIcon{
+    width:36px; height:36px; margin:0 auto; border:2px solid transparent; cursor:pointer;
+    transition:transform .15s ease, border-color .15s ease;
   }
+  .shapeIcon.sphere{border-radius:50%;}
+  .shapeIcon.cube{border-radius:7px;}
+  .shapeIcon.diamond{border-radius:5px; transform:rotate(45deg); width:28px; height:28px; margin:4px auto;}
+  .shapeIcon.prism{clip-path:polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%); border-radius:0;}
+  .shapeIcon.selected{border-color:#fff !important; box-shadow:0 0 14px currentColor; transform:scale(1.12) rotate(var(--r,0deg));}
+  .shapeIcon.diamond.selected{transform:rotate(45deg) scale(1.15);}
+  .uniGrid{display:grid; grid-template-columns:repeat(3,1fr); gap:9px; max-width:280px; margin:0 auto;}
+  .uniCard{
+    border-radius:11px; border:2px solid transparent; cursor:pointer; padding:8px 4px 6px;
+    background:#ffffff06; transition:transform .15s ease, border-color .15s ease;
+    display:flex; flex-direction:column; align-items:center; gap:5px;
+  }
+  .uniCard .uniSwatch{width:34px; height:34px; border-radius:9px;}
+  .uniCard .uniName{font-size:9px; color:var(--ink-dim); letter-spacing:.02em; text-align:center;}
+  .uniCard.selected{border-color:#fff; box-shadow:0 0 0 3px #ffffff22, 0 0 14px currentColor;}
+  .uniCard.selected .uniName{color:var(--ink);}
 
   .tabs{display:flex; gap:5px; margin-bottom:16px; background:#00000033; border-radius:11px; padding:4px;}
   .tabBtn{
@@ -199,16 +225,34 @@
   .tabPanel{animation: tabIn .3s ease both;}
   @keyframes tabIn{0%{opacity:0; transform:translateY(6px);} 100%{opacity:1; transform:translateY(0);}}
 
-  .levelGrid{display:grid; grid-template-columns:1fr 1fr; gap:8px;}
-  .levelCard{
-    border:1px solid var(--panel-line); border-radius:11px; padding:10px 8px;
-    background:#ffffff06; cursor:pointer; text-align:center;
-    transition:border-color .15s ease, background .15s ease, transform .15s ease;
+  .levelList{display:flex; flex-direction:column; gap:7px; max-height:290px; overflow-y:auto; padding:2px 3px 2px 0; margin-bottom:8px;}
+  .levelRow{
+    display:flex; justify-content:space-between; align-items:center; gap:10px;
+    border:1px solid var(--panel-line); border-radius:11px; padding:9px 12px;
+    background:#ffffff06; cursor:pointer; text-align:left;
+    transition:border-color .15s ease, background .15s ease;
   }
-  .levelCard.selected{border-color:var(--teal); background:#39e6c31f; transform:scale(1.02); box-shadow:0 0 14px #39e6c322;}
-  .levelCard .lvName{font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:13px; color:var(--ink);}
-  .levelCard .lvSize{font-size:9.5px; color:var(--ink-dim); margin-top:3px; letter-spacing:.05em;}
-  .levelHint{font-size:9.5px; color:var(--ink-dim); text-align:center; margin-top:10px; line-height:1.5;}
+  .levelRow.selected{border-color:var(--teal); background:#39e6c31f; box-shadow:0 0 14px #39e6c322;}
+  .levelRow .lvMain{display:flex; flex-direction:column; gap:2px; min-width:0;}
+  .levelRow .lvName{font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:12.5px; color:var(--ink); white-space:nowrap;}
+  .levelRow .lvTag{font-size:9px; color:var(--ink-dim); letter-spacing:.02em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .levelRow .lvSize{font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:11px; color:var(--ink-dim); white-space:nowrap; flex:none;}
+  .levelHint{font-size:9.5px; color:var(--ink-dim); text-align:center; line-height:1.5;}
+
+  .hidden{display:none !important;}
+  .devPanel{margin-top:12px; padding-top:12px; border-top:1px solid var(--panel-line);}
+  .devRow{margin-bottom:10px;}
+  .devRow label{display:flex; justify-content:space-between; font-size:10px; color:var(--ink-dim); letter-spacing:.03em; margin-bottom:4px;}
+  .devRow label span{color:var(--teal); font-family:'Space Grotesk',sans-serif; font-weight:700;}
+  .devRow input[type=range]{width:100%; accent-color:var(--teal); height:20px;}
+  .devToggleRow{display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;}
+  .devToggleRow label{font-size:10px; color:var(--ink-dim); letter-spacing:.03em; margin:0;}
+  .devToggle{
+    font-family:'Space Grotesk',sans-serif; font-size:10px; font-weight:700; letter-spacing:.05em;
+    padding:5px 14px; border-radius:20px; border:1px solid var(--panel-line); background:#ffffff08; color:var(--ink-dim); cursor:pointer;
+  }
+  .devToggle.on{background:linear-gradient(135deg,var(--teal),#21b8a1); color:#04120e; border-color:transparent;}
+  #devPopSub{margin-left:2px; padding-left:10px; border-left:2px solid var(--panel-line);}
 
   .rulesList{display:flex; flex-direction:column; gap:12px; max-height:300px; overflow-y:auto; padding:2px 4px 2px 0; margin-bottom:6px;}
   .ruleItem{display:flex; gap:10px; align-items:flex-start; text-align:left;}
@@ -244,6 +288,7 @@
     h1{font-size:20px;}
     .desc{margin-bottom:10px;}
     .section{margin-bottom:10px;}
+    .levelList{max-height:180px;}
   }
 </style>
 </head>
@@ -266,15 +311,16 @@
   </div>
 
   <div id="jokerTag">
-    <div class="lbl">Jokers</div>
+    <div class="lbl" id="jokerLbl">Jokers</div>
     <div class="jdots" id="jokerDots">
       <span class="jd"></span><span class="jd"></span><span class="jd"></span>
     </div>
   </div>
 
-  <button id="quitBtn" aria-label="Quitter la partie">
-    <svg viewBox="0 0 24 24" fill="none" width="16" height="16"><path d="M6 6L18 18M18 6L6 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+  <button id="quitBtn" aria-label="Retour au menu">
+    <svg viewBox="0 0 24 24" fill="none" width="16" height="16"><path d="M4 11.5L12 4L20 11.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M6.5 10V19.5H17.5V10" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
   </button>
+  <button id="muteBtn" aria-label="Activer/couper le son">🔊</button>
 
   <div id="controls">
     <button class="turnBtn" id="btnLeft" aria-label="Tourner à gauche">
@@ -303,17 +349,57 @@
         <p class="desc">Un organisme rampe sur les <b>6 faces</b> d'un cube en lévitation. Choisis ton niveau et lance l'observation.</p>
         <div class="section">
           <div class="sectionLbl">Niveau</div>
-          <div class="levelGrid" id="levelGrid"></div>
-          <div class="levelHint">Plus de cases = plus d'espace pour manœuvrer, donc plus facile.</div>
+          <div class="levelList" id="levelList"></div>
+          <div class="levelHint">Cube plus grand + moins de murs = plus facile. Fais défiler pour voir les 10 niveaux.</div>
+          <div class="devPanel hidden" id="devPanel">
+            <div class="devRow">
+              <label>Taille du cube <span id="devNVal">9 × 9</span></label>
+              <input type="range" id="devN" min="5" max="16" step="1" value="9">
+            </div>
+            <div class="devRow">
+              <label>Vitesse de base <span id="devSpeedVal">Normale</span></label>
+              <input type="range" id="devSpeed" min="1" max="10" step="1" value="4">
+            </div>
+            <div class="devRow">
+              <label>Accélération <span id="devRampVal">1.0×/pt</span></label>
+              <input type="range" id="devRamp" min="0" max="20" step="1" value="10">
+            </div>
+            <div class="devRow">
+              <label>Murs fixes <span id="devWallsVal">2</span></label>
+              <input type="range" id="devWalls" min="0" max="15" step="1" value="2">
+            </div>
+            <div class="devRow devToggleRow">
+              <label>Murs éclairs</label>
+              <button type="button" class="devToggle" id="devPopToggle">Off</button>
+            </div>
+            <div id="devPopSub" class="hidden">
+              <div class="devRow"><label>Fréquence min (s) <span id="devPopMinVal">6</span></label><input type="range" id="devPopMin" min="1" max="20" step="0.5" value="6"></div>
+              <div class="devRow"><label>Fréquence max (s) <span id="devPopMaxVal">10</span></label><input type="range" id="devPopMax" min="1" max="25" step="0.5" value="10"></div>
+              <div class="devRow"><label>Durée (s) <span id="devPopDurVal">3</span></label><input type="range" id="devPopDur" min="0.5" max="8" step="0.5" value="3"></div>
+              <div class="devRow"><label>Max simultanés <span id="devPopMaxCountVal">1</span></label><input type="range" id="devPopMaxCount" min="1" max="5" step="1" value="1"></div>
+            </div>
+            <div class="devRow">
+              <label>Jokers <span id="devJokersVal">3</span></label>
+              <input type="range" id="devJokers" min="0" max="5" step="1" value="3">
+            </div>
+            <div class="devRow devToggleRow">
+              <label>Chemin doré visible</label>
+              <button type="button" class="devToggle on" id="devPathToggle">On</button>
+            </div>
+          </div>
         </div>
         <div class="legend">◀ Gauche &nbsp;·&nbsp; Tout droit &nbsp;·&nbsp; Droite ▶ &nbsp;·&nbsp; bouton doré = saut</div>
         <button class="btn" id="startBtn">Lancer l'observation</button>
       </div>
 
       <div class="tabPanel hidden" data-panel="skin">
+        <div class="section" style="margin-bottom:16px;">
+          <div class="sectionLbl">Univers (cube, murs, couleur du serpent)</div>
+          <div class="uniGrid" id="uniGrid"></div>
+        </div>
         <div class="section" style="margin-bottom:6px;">
-          <div class="sectionLbl">Choisis ton spécimen</div>
-          <div class="skinGrid" id="skinGrid"></div>
+          <div class="sectionLbl">Forme du serpent (indépendante de l'univers)</div>
+          <div class="shapeGrid" id="skinGrid"></div>
         </div>
       </div>
 
@@ -324,24 +410,40 @@
             <div><b>Se diriger</b><p>Boutons à l'écran, flèches/AD au clavier, ou swipe. Le serpent avance tout seul, pas de marche arrière.</p></div>
           </div>
           <div class="ruleItem">
-            <div class="ruleIcon">◆</div>
-            <div><b>Objectif</b><p>Absorbe les fragments pour grandir. Le cube tourne sur 6 faces sans jamais bouger du centre.</p></div>
+            <div class="ruleIcon" style="color:#ffd23c;">◆</div>
+            <div><b>Objectif</b><p>Absorbe les fragments jaunes pour grandir. Le cube tourne sur 6 faces sans jamais bouger du centre.</p></div>
           </div>
           <div class="ruleItem">
             <div class="ruleIcon" style="color:#ffd23c;">◈</div>
-            <div><b>Chemin doré</b><p>Une traînée de pastilles indique le plus court chemin au sol jusqu'au prochain fragment.</p></div>
+            <div><b>Chemin doré</b><p>Une traînée de pastilles indique le plus court chemin jusqu'au prochain fragment. Invisible sur Magicien et Divinité.</p></div>
           </div>
           <div class="ruleItem">
-            <div class="ruleIcon" style="color:#8cff3c;">▲</div>
-            <div><b>Boost (vert)</b><p>Accélère temporairement. Apparaît surtout quand le serpent est encore court.</p></div>
+            <div class="ruleIcon" style="color:#2e8fff;">▲</div>
+            <div><b>Boost (bleu)</b><p>Accélère temporairement. Fréquent et puissant quand le serpent est court, presque inutile une fois qu'il est grand.</p></div>
           </div>
           <div class="ruleItem">
-            <div class="ruleIcon" style="color:#7c6cff;">◆</div>
-            <div><b>Ralentisseur (violet)</b><p>Ralentit temporairement. Apparaît surtout quand le serpent est devenu grand et difficile à manœuvrer.</p></div>
+            <div class="ruleIcon" style="color:#ff3b3b;">◆</div>
+            <div><b>Ralentisseur (rouge)</b><p>Pénible quand le serpent est court, mais devient un vrai coup de pouce une fois qu'il est grand et dur à manœuvrer.</p></div>
           </div>
           <div class="ruleItem">
             <div class="ruleIcon" style="color:#ffd23c;">⌒</div>
-            <div><b>Saut (3 jokers)</b><p>Le bouton doré entre les flèches fait sauter le serpent par-dessus son propre corps pour éviter la collision.</p></div>
+            <div><b>Saut (jokers)</b><p>Le bouton doré entre les flèches fait sauter le serpent par-dessus son corps ou un mur. Le nombre de jokers dépend du niveau.</p></div>
+          </div>
+          <div class="ruleItem">
+            <div class="ruleIcon" style="color:#ff3b3b;">▮</div>
+            <div><b>Murs fixes</b><p>Placés une fois pour toutes au lancement, en groupes de 1 à 3 cases alignées. Leur apparence suit l'univers choisi (arbres, corail, lave...).</p></div>
+          </div>
+          <div class="ruleItem">
+            <div class="ruleIcon" style="color:#ff8a3b;">✶</div>
+            <div><b>Murs éclairs</b><p>Sur certains niveaux, des murs supplémentaires apparaissent et disparaissent en cours de partie — parfois en continu (Iron Man).</p></div>
+          </div>
+          <div class="ruleItem">
+            <div class="ruleIcon">✦</div>
+            <div><b>Univers</b><p>Le cube, les murs et la couleur du serpent suivent l'univers choisi. La forme du serpent se choisit séparément. La nourriture (jaune), le boost (bleu) et le ralentisseur (rouge) gardent toujours la même couleur pour rester lisibles.</p></div>
+          </div>
+          <div class="ruleItem">
+            <div class="ruleIcon">⚙</div>
+            <div><b>Développeur</b><p>10ᵉ niveau : règle toi-même la taille du cube, la vitesse, les murs fixes, la fréquence des murs éclairs, les jokers et la visibilité du chemin.</p></div>
           </div>
         </div>
       </div>
@@ -357,7 +459,19 @@
         <div class="s"><div class="n" id="finalScore">0</div><div class="l">score</div></div>
         <div class="s best"><div class="n" id="finalBest">0</div><div class="l">record</div></div>
       </div>
-      <button class="btn" id="retryBtn">Réobserver</button>
+      <button class="btn" id="retryBtn">Retour au menu</button>
+    </div>
+  </div>
+
+  <div class="overlay hidden" id="quitConfirm">
+    <div class="panel" style="max-width:320px;">
+      <div class="eyebrow" style="color:var(--danger);">Quitter ?</div>
+      <h1 style="font-size:20px;">Retour au menu</h1>
+      <p class="desc">Ta partie en cours sera perdue (score actuel : <b id="quitScoreVal">0</b>). Continuer ?</p>
+      <div style="display:flex; gap:10px;">
+        <button class="btn" id="quitCancelBtn" style="background:#ffffff10; color:var(--ink); box-shadow:none;">Annuler</button>
+        <button class="btn" id="quitConfirmBtn" style="background:linear-gradient(135deg,var(--danger),#c73a4a);">Quitter</button>
+      </div>
     </div>
   </div>
 </div>
@@ -370,30 +484,159 @@
 /* ============================================================
    CONFIG
 ============================================================ */
-const H = 3.0;                // demi-taille du cube (fixe)
-const MIN_N = 6, MAX_N = 16;
-let N = 9;                    // cellules par arête (réglable)
+const H = 3.0;
+const MIN_N = 5, MAX_N = 16;
+let N = 9;
 let CELL = (2*H)/N;
 let EDGE_LIM = H - CELL/2 + 1e-6;
 
 const START_LEN = 4;
-const BASE_INTERVAL = 460;
-const MIN_INTERVAL  = 150;
-const SPEEDUP_PER_POINT = 0.9;
+const MIN_INTERVAL = 130;
+const MAX_POWERUPS = 3;
 
-const SKINS = [
-  {name:'Abysse',    head:0x8ffff0, glow:0x39e6c3, tail:0x7c5cff},
-  {name:'Corail',    head:0xffd9c2, glow:0xff9d5c, tail:0xff5c7a},
-  {name:'Toxique',   head:0xdcff9c, glow:0x8cff3c, tail:0x1f6e2a},
-  {name:'Améthyste', head:0xe3c8ff, glow:0xb066ff, tail:0x5b1e8c},
-  {name:'Glacier',   head:0xf0fbff, glow:0x8fe3ff, tail:0x2a6f99},
-  {name:'Magma',     head:0xffcf9c, glow:0xff5c2a, tail:0x6e1a0a},
-  {name:'Or',        head:0xfff0b3, glow:0xffd23c, tail:0x8a5a12},
-  {name:'Spectre',   head:0xffffff, glow:0xcfd8ff, tail:0x5a6180},
-  {name:'Nébuleuse', head:0xffc2f0, glow:0xc26bff, tail:0x2a2a8c},
-  {name:'Néon',      head:0xffe0f7, glow:0xff2ecb, tail:0x2ad9ff},
+// Formes du serpent : purement géométriques, indépendantes de l'univers/thème
+const SHAPES = [
+  {key:'sphere',  name:'Sphère'},
+  {key:'cube',    name:'Cube'},
+  {key:'diamond', name:'Losange'},
+  {key:'prism',   name:'Prisme'},
 ];
-let selectedSkin = 0;
+let selectedShape = 0;
+
+// Univers : palette du cube + apparence des murs + couleur du serpent (le serpent suit toujours l'univers choisi)
+// La nourriture/boost/ralentisseur restent volontairement à couleur fixe (jaune/bleu/rouge) dans tous les univers,
+// pour rester lisibles d'un coup d'œil quel que soit le décor.
+const UNIVERSES = [
+  {key:'cosmos', name:'Cosmos',
+    tints:['#39e6c3','#7c6cff','#39e6c3','#ff9d5c','#7c6cff','#39e6c3'], edge:0x39e6c3,
+    wallShape:'rock', wallColor:0x2a2f4a, wallEmissive:0x39e6c3,
+    snakeHead:0x8ffff0, snakeGlow:0x39e6c3, snakeTail:0x7c6cff},
+  {key:'terre', name:'Terre',
+    tints:['#8a6a3f','#4c7a3a','#6b8f4e','#5a3d21','#7a5a34','#4c7a3a'], edge:0x8fbf5a,
+    wallShape:'tree', wallColor:0x6b4226, wallEmissive:0x7bbf5a,
+    snakeHead:0xe8f7c8, snakeGlow:0x8fbf5a, snakeTail:0x4c7a3a},
+  {key:'ocean', name:'Océan',
+    tints:['#1f6e9e','#0e3a5c','#3ac6e0','#0a2740','#1f6e9e','#3ac6e0'], edge:0x3ac6e0,
+    wallShape:'coral', wallColor:0x1f6e78, wallEmissive:0xff8fb0,
+    snakeHead:0xdff6ff, snakeGlow:0x3ac6e0, snakeTail:0x1f6e9e},
+  {key:'volcan', name:'Volcan',
+    tints:['#ff5c2a','#2a0f0a','#c73a1e','#1a0806','#ff5c2a','#c73a1e'], edge:0xff5c2a,
+    wallShape:'lava', wallColor:0x2a1410, wallEmissive:0xff5c2a,
+    snakeHead:0xffcf9c, snakeGlow:0xff5c2a, snakeTail:0x8a2a12},
+  {key:'glace', name:'Glace',
+    tints:['#cdeeff','#8fe3ff','#eaf9ff','#8fe3ff','#cdeeff','#eaf9ff'], edge:0x8fe3ff,
+    wallShape:'ice', wallColor:0xcdeeff, wallEmissive:0x8fe3ff,
+    snakeHead:0xf0fbff, snakeGlow:0x8fe3ff, snakeTail:0x3a7fa8},
+  {key:'cyber', name:'Cyber',
+    tints:['#12142a','#ff2ecb','#12142a','#2ad9ff','#12142a','#ff2ecb'], edge:0xff2ecb,
+    wallShape:'circuit', wallColor:0x0a0c1a, wallEmissive:0xff2ecb,
+    snakeHead:0xffe0f7, snakeGlow:0xff2ecb, snakeTail:0x2ad9ff},
+];
+let selectedCubeSkin = 0;
+
+// ---- Niveaux : chaque niveau change radicalement la donne, pas juste la taille du cube ----
+const TIER_BIAS = {
+  1: {ceil:0.9,  floor:0.28},
+  2: {ceil:0.85, floor:0.12},
+  3: {ceil:0.78, floor:0.05},
+};
+const TIER_FX = {
+  1: {boost:[0.52,0.9],  slow:[1.9,1.2]},
+  2: {boost:[0.46,0.85], slow:[2.2,1.3]},
+  3: {boost:[0.42,0.95], slow:[2.4,1.5]},
+};
+const LEVELS = [
+  {key:'detente',   name:'Détente',   n:14, fixedWalls:0,  pop:null,
+    baseInterval:560, speedup:0.65, jokers:4, pathVisible:true, tier:1,
+    tag:'Cube géant · aucun danger'},
+  {key:'facile',    name:'Facile',    n:12, fixedWalls:0,  pop:null,
+    baseInterval:500, speedup:0.8,  jokers:3, pathVisible:true, tier:1,
+    tag:'Grand cube · aucun mur'},
+  {key:'normal',    name:'Normal',    n:9,  fixedWalls:2,  pop:null,
+    baseInterval:460, speedup:0.95, jokers:3, pathVisible:true, tier:1,
+    tag:'2 murs fixes'},
+  {key:'difficile', name:'Difficile', n:7,  fixedWalls:4,
+    pop:{max:1, minGap:9000, maxGap:14000, minDur:2500, maxDur:4000},
+    baseInterval:400, speedup:1.15, jokers:2, pathVisible:true, tier:2,
+    tag:'4 murs fixes + murs éclairs rares'},
+  {key:'expert',    name:'Expert',    n:6,  fixedWalls:6,
+    pop:{max:2, minGap:6000, maxGap:10000, minDur:2500, maxDur:4000},
+    baseInterval:340, speedup:1.35, jokers:1, pathVisible:true, tier:2,
+    tag:'6 murs fixes + murs éclairs fréquents'},
+  {key:'hitman',    name:'Hitman',    n:5,  fixedWalls:8,
+    pop:{max:2, minGap:4500, maxGap:8000, minDur:2500, maxDur:4000},
+    baseInterval:260, speedup:0, jokers:0, pathVisible:true, tier:3,
+    tag:'8 murs fixes · vitesse max direct · 0 joker'},
+  {key:'magicien',  name:'Magicien',  n:5,  fixedWalls:10,
+    pop:{max:2, minGap:4000, maxGap:7000, minDur:2800, maxDur:4200},
+    baseInterval:250, speedup:0, jokers:0, pathVisible:false, tier:3,
+    tag:'10 murs fixes · chemin invisible'},
+  {key:'divinite',  name:'Divinité',  n:5,  fixedWalls:12,
+    pop:{max:3, minGap:3200, maxGap:6000, minDur:3000, maxDur:4500},
+    baseInterval:230, speedup:0, jokers:0, pathVisible:false, tier:3,
+    tag:'12 murs fixes · chemin invisible'},
+  {key:'ironman',   name:'Iron Man',  n:5,  fixedWalls:0,
+    pop:{max:3, minGap:900, maxGap:1800, minDur:1500, maxDur:2500},
+    baseInterval:210, speedup:0, jokers:0, pathVisible:true, tier:3,
+    tag:'aucun mur fixe · murs éclairs en continu, très vite'},
+  {key:'dev', name:'Développeur', n:9, fixedWalls:2, pop:null,
+    baseInterval:460, speedup:0.95, jokers:3, pathVisible:true, tier:2,
+    tag:'Réglages libres ci-dessous', custom:true},
+];
+
+/* ============================================================
+   SON (synthétisé, Web Audio — aucun fichier requis)
+============================================================ */
+let audioCtx = null;
+let soundOn = true;
+function ensureAudio(){
+  if (!soundOn) return;
+  if (!audioCtx){
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) return;
+    audioCtx = new Ctx();
+  }
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+}
+function beep(freq, duration, type, vol, when){
+  if (!soundOn || !audioCtx) return;
+  const t0 = audioCtx.currentTime + (when||0);
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = type || 'sine';
+  osc.frequency.setValueAtTime(freq, t0);
+  gain.gain.setValueAtTime(0, t0);
+  gain.gain.linearRampToValueAtTime(vol||0.18, t0+0.01);
+  gain.gain.exponentialRampToValueAtTime(0.0001, t0+duration);
+  osc.connect(gain).connect(audioCtx.destination);
+  osc.start(t0); osc.stop(t0+duration+0.03);
+}
+function sweep(fromF, toF, duration, type, vol, when){
+  if (!soundOn || !audioCtx) return;
+  const t0 = audioCtx.currentTime + (when||0);
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = type || 'sine';
+  osc.frequency.setValueAtTime(fromF, t0);
+  osc.frequency.exponentialRampToValueAtTime(Math.max(20,toF), t0+duration);
+  gain.gain.setValueAtTime(0, t0);
+  gain.gain.linearRampToValueAtTime(vol||0.18, t0+0.015);
+  gain.gain.exponentialRampToValueAtTime(0.0001, t0+duration);
+  osc.connect(gain).connect(audioCtx.destination);
+  osc.start(t0); osc.stop(t0+duration+0.03);
+}
+function sfxEat(){ beep(660,0.09,'triangle',0.18); beep(880,0.12,'triangle',0.15,0.06); }
+function sfxBoost(){ sweep(300,950,0.25,'sawtooth',0.14); }
+function sfxSlow(){ sweep(700,220,0.32,'sawtooth',0.14); }
+function sfxJump(){ sweep(500,780,0.11,'sine',0.16); sweep(780,420,0.14,'sine',0.12,0.1); }
+function sfxGameOver(){ beep(392,0.18,'square',0.15,0); beep(329.6,0.18,'square',0.15,0.16); beep(261.6,0.34,'square',0.17,0.32); }
+function sfxWallSpawn(){ beep(180,0.08,'square',0.13,0); beep(180,0.08,'square',0.13,0.13); }
+function toggleSound(){
+  soundOn = !soundOn;
+  const btn = document.getElementById('muteBtn');
+  if (btn) btn.textContent = soundOn ? '🔊' : '🔇';
+  if (soundOn) ensureAudio();
+}
 
 /* ============================================================
    THREE.JS SETUP
@@ -430,7 +673,6 @@ rimTeal.position.set(-7, 3, -5); scene.add(rimTeal);
 const rimViolet = new THREE.PointLight(0x7c6cff, 5, 22, 2);
 rimViolet.position.set(6, -4, 6); scene.add(rimViolet);
 
-/* ---------- Starfield ---------- */
 const starGeo = new THREE.BufferGeometry();
 const STAR_N = 1600;
 const starPos = new Float32Array(STAR_N*3);
@@ -503,12 +745,12 @@ const cubeGroup = new THREE.Group();
 scene.add(cubeGroup);
 
 const FACE_DEFS = [
-  {normal:new THREE.Vector3( 1,0,0), tint:'#39e6c3'},
-  {normal:new THREE.Vector3(-1,0,0), tint:'#7c6cff'},
-  {normal:new THREE.Vector3(0, 1,0), tint:'#39e6c3'},
-  {normal:new THREE.Vector3(0,-1,0), tint:'#ff9d5c'},
-  {normal:new THREE.Vector3(0,0, 1), tint:'#7c6cff'},
-  {normal:new THREE.Vector3(0,0,-1), tint:'#39e6c3'},
+  {normal:new THREE.Vector3( 1,0,0)},
+  {normal:new THREE.Vector3(-1,0,0)},
+  {normal:new THREE.Vector3(0, 1,0)},
+  {normal:new THREE.Vector3(0,-1,0)},
+  {normal:new THREE.Vector3(0,0, 1)},
+  {normal:new THREE.Vector3(0,0,-1)},
 ];
 const faceMeshes = [];
 function disposeFaces(){
@@ -521,9 +763,11 @@ function disposeFaces(){
   faceMeshes.length = 0;
 }
 function buildFaces(){
-  FACE_DEFS.forEach(fd=>{
-    const tex = makeFaceTexture(fd.tint);
-    const mat = new THREE.MeshStandardMaterial({map:tex, roughness:0.55, metalness:0.25, emissive:new THREE.Color(fd.tint), emissiveIntensity:0.06});
+  const tints = UNIVERSES[selectedCubeSkin].tints;
+  FACE_DEFS.forEach((fd,i)=>{
+    const tint = tints[i];
+    const tex = makeFaceTexture(tint);
+    const mat = new THREE.MeshStandardMaterial({map:tex, roughness:0.55, metalness:0.25, emissive:new THREE.Color(tint), emissiveIntensity:0.06});
     const geo = new THREE.PlaneGeometry(2*H, 2*H);
     const mesh = new THREE.Mesh(geo, mat);
     mesh.position.copy(fd.normal).multiplyScalar(H);
@@ -573,7 +817,6 @@ function stepFrame(f){
   }
   return {pos:newPos, normal:f.normal.clone(), forward:f.forward.clone(), right:f.right.clone()};
 }
-// variant used for adjacency graph — orientation ("right") irrelevant, only position/normal matter
 function neighborRaw(pos, normal, dir){
   const newPos = pos.clone();
   newPos[dir.axis] += dir.sign * CELL;
@@ -599,20 +842,26 @@ function frameQuaternion(f){
 let ALL_CELLS = [];
 let ADJ = [];
 let CELL_MAP = new Map();
+let FACE_IJ_MAP = new Map();
 function cellKeyOf(v){
   return Math.round(v.x*1e6)+'_'+Math.round(v.y*1e6)+'_'+Math.round(v.z*1e6);
 }
 function buildAllCells(){
   ALL_CELLS = [];
+  FACE_IJ_MAP = new Map();
   const faceAxes = [{n:'x',a:'y',b:'z'},{n:'y',a:'x',b:'z'},{n:'z',a:'x',b:'y'}];
+  let faceId = 0;
   faceAxes.forEach(fa=>{
     [1,-1].forEach(sign=>{
+      const fid = faceId++;
       for(let i=0;i<N;i++){
         for(let j=0;j<N;j++){
           const coordA=(i-(N-1)/2)*CELL, coordB=(j-(N-1)/2)*CELL;
           const p=new THREE.Vector3(); p[fa.n]=sign*H; p[fa.a]=coordA; p[fa.b]=coordB;
           const nrm=new THREE.Vector3(); nrm[fa.n]=sign;
-          ALL_CELLS.push({pos:p, normal:nrm});
+          const idx = ALL_CELLS.length;
+          ALL_CELLS.push({pos:p, normal:nrm, face:fid, i, j});
+          FACE_IJ_MAP.set(fid+'_'+i+'_'+j, idx);
         }
       }
     });
@@ -639,23 +888,28 @@ function buildAdjacency(){
 /* ============================================================
    SNAKE / GAME STATE
 ============================================================ */
+let CURRENT_LEVEL = LEVELS[2]; // Normal par défaut
+let pendingLevelIdx = 2;
+
 let body = [];
 let pendingTurn = null;
 let food = null;
 let boosters = [];
 let slowdowns = [];
-const MAX_POWERUPS = 3;
+let walls = [];           // {pos, normal, permanent, start?, duration?}
+let nextPopWallTime = Infinity;
 let score = 0;
 let best = 0;
 let jokersLeft = 3;
 let pendingJump = false;
 let headJumpFlag = false;
-let baseTickInterval = BASE_INTERVAL;
+let baseTickInterval = 460;
 let speedModifier = 1;
 let speedModifierEnd = 0;
 let tickAccum = 0;
 let lastTime = performance.now();
 let running = false;
+let paused = false;
 let gameOver = true;
 let renderFrom = [];
 let tickAlpha = 1;
@@ -677,6 +931,7 @@ function cellFree(pos){
   if (food && food.pos.distanceToSquared(pos) < 1e-4) return false;
   for(const b of boosters) if (b.pos.distanceToSquared(pos) < 1e-4) return false;
   for(const s of slowdowns) if (s.pos.distanceToSquared(pos) < 1e-4) return false;
+  for(const w of walls) if (w.pos.distanceToSquared(pos) < 1e-4) return false;
   return true;
 }
 function randomFreeCell(){
@@ -686,20 +941,84 @@ function randomFreeCell(){
   }
   return ALL_CELLS[0];
 }
+
+/* ---------- Murs fixes : groupes de 1 à 3 cases alignées, posés une fois ---------- */
+function pickAlignedGroup(){
+  const r = Math.random();
+  const len = r<0.70 ? 1 : (r<0.92 ? 2 : 3);
+  for(let attempt=0; attempt<60; attempt++){
+    const anchor = ALL_CELLS[(Math.random()*ALL_CELLS.length)|0];
+    if (!cellFree(anchor.pos)) continue;
+    if (len===1) return [anchor];
+    const dir = Math.random()<0.5 ? {di:1,dj:0} : {di:0,dj:1};
+    const sign = Math.random()<0.5 ? 1 : -1;
+    const group = [];
+    let ok = true;
+    for(let k=0;k<len;k++){
+      const ii = anchor.i + dir.di*sign*k;
+      const jj = anchor.j + dir.dj*sign*k;
+      if (ii<0||ii>=N||jj<0||jj>=N){ ok=false; break; }
+      const idx = FACE_IJ_MAP.get(anchor.face+'_'+ii+'_'+jj);
+      if (idx===undefined){ ok=false; break; }
+      const cell = ALL_CELLS[idx];
+      if (!cellFree(cell.pos)){ ok=false; break; }
+      group.push(cell);
+    }
+    if (ok && group.length===len) return group;
+  }
+  for(let attempt=0; attempt<80; attempt++){
+    const c = ALL_CELLS[(Math.random()*ALL_CELLS.length)|0];
+    if (cellFree(c.pos)) return [c];
+  }
+  return [];
+}
+function reachableFreeCount(){
+  const startIdx = CELL_MAP.get(cellKeyOf(body[0].pos));
+  if (startIdx===undefined) return ALL_CELLS.length;
+  const wallSet = new Set();
+  walls.forEach(w=>{ const idx = CELL_MAP.get(cellKeyOf(w.pos)); if (idx!==undefined) wallSet.add(idx); });
+  const seen = new Uint8Array(ALL_CELLS.length);
+  const queue = [startIdx]; seen[startIdx]=1;
+  let qi=0;
+  while(qi<queue.length){
+    const cur = queue[qi++];
+    for(const nb of ADJ[cur]){
+      if (!seen[nb] && !wallSet.has(nb)){ seen[nb]=1; queue.push(nb); }
+    }
+  }
+  let count=0; for(let i=0;i<seen.length;i++) if (seen[i]) count++;
+  return count;
+}
+function placeFixedWalls(count){
+  const groups = [];
+  for(let g=0; g<count; g++){
+    const group = pickAlignedGroup();
+    if (!group.length) continue;
+    group.forEach(c=> walls.push({pos:c.pos.clone(), normal:c.normal.clone(), permanent:true}));
+    groups.push(group);
+  }
+  const totalFree = ALL_CELLS.length - walls.length;
+  let guard = 0;
+  while (walls.length && totalFree>0 && reachableFreeCount() < totalFree*0.75 && guard<60){
+    let g = groups.pop();
+    while (g && g.length){
+      const c = g.pop();
+      const idx = walls.findIndex(w=>w.permanent && w.pos.distanceToSquared(c.pos)<1e-4);
+      if (idx>=0) walls.splice(idx,1);
+    }
+    guard++;
+  }
+}
+function spawnPopWall(pop){
+  const c = randomFreeCell();
+  walls.push({pos:c.pos.clone(), normal:c.normal.clone(), permanent:false, start:performance.now(), duration: pop.minDur+Math.random()*(pop.maxDur-pop.minDur)});
+  sfxWallSpawn();
+}
+
 function spawnFood(){
   const c = randomFreeCell();
   food = {pos:c.pos.clone(), normal:c.normal.clone()};
   recomputePath();
-}
-// Au début (serpent court) on favorise les boosts pour manger vite ; une fois
-// le serpent grand, il faut plutôt esquiver → on favorise les ralentisseurs.
-// Transition progressive, pas de seuil brutal.
-function boostProbability(){
-  const ratio = body.length / ALL_CELLS.length;
-  const lowT = 0.035, highT = 0.15;
-  let t = (ratio - lowT) / (highT - lowT);
-  t = Math.max(0, Math.min(1, t));
-  return 0.85 - t*0.7; // 85% de boosts au début → 15% (donc 85% ralentisseurs) une fois grand
 }
 function fillPowerups(){
   while(boosters.length + slowdowns.length < MAX_POWERUPS){
@@ -708,8 +1027,33 @@ function fillPowerups(){
     else slowdowns.push({pos:c.pos.clone(), normal:c.normal.clone()});
   }
 }
+function sizeGrowthT(){
+  const ratio = body.length / ALL_CELLS.length;
+  const t = (ratio - 0.04) / (0.22 - 0.04);
+  return Math.max(0, Math.min(1, t));
+}
+function boostProbability(){
+  const b = TIER_BIAS[CURRENT_LEVEL.tier];
+  const t = sizeGrowthT();
+  return b.ceil - t*(b.ceil-b.floor);
+}
+function boostModifier(){
+  const arr = TIER_FX[CURRENT_LEVEL.tier].boost;
+  const early = arr[0], late = arr[1];
+  return early + sizeGrowthT()*(late-early);
+}
+function slowModifier(){
+  const arr = TIER_FX[CURRENT_LEVEL.tier].slow;
+  const early = arr[0], late = arr[1];
+  return early + sizeGrowthT()*(late-early);
+}
+
+function applyLevel(level){
+  CURRENT_LEVEL = level;
+}
 
 function resetGame(){
+  paused = false;
   const initLen = Math.min(START_LEN, Math.max(2, N-2));
   body = [];
   const head = initialFrame();
@@ -724,12 +1068,15 @@ function resetGame(){
   pendingJump = false;
   headJumpFlag = false;
   score = 0;
-  jokersLeft = 3;
-  baseTickInterval = BASE_INTERVAL;
+  jokersLeft = CURRENT_LEVEL.jokers;
+  baseTickInterval = CURRENT_LEVEL.baseInterval;
   speedModifier = 1; speedModifierEnd = 0;
   tickAccum = 0; tickAlpha = 1;
   gameOver = false;
   boosters = []; slowdowns = [];
+  walls = [];
+  placeFixedWalls(CURRENT_LEVEL.fixedWalls);
+  nextPopWallTime = CURRENT_LEVEL.pop ? (performance.now() + CURRENT_LEVEL.pop.minGap*0.4 + Math.random()*CURRENT_LEVEL.pop.minGap*0.4) : Infinity;
   food = null;
   spawnFood();
   fillPowerups();
@@ -738,7 +1085,7 @@ function resetGame(){
 }
 
 /* ---------- pathfinding (BFS) ---------- */
-function findPathCells(fromPos, toPos){
+function findPathCells(fromPos, toPos, blocked){
   const startIdx = CELL_MAP.get(cellKeyOf(fromPos));
   const goalIdx = CELL_MAP.get(cellKeyOf(toPos));
   if (startIdx===undefined || goalIdx===undefined) return [];
@@ -750,6 +1097,7 @@ function findPathCells(fromPos, toPos){
     const cur = queue[qi++];
     if (cur === goalIdx) break;
     for(const nb of ADJ[cur]){
+      if (blocked && blocked.has(nb)) continue;
       if (prev[nb] === -2){ prev[nb] = cur; queue.push(nb); }
     }
   }
@@ -761,7 +1109,9 @@ function findPathCells(fromPos, toPos){
 }
 function recomputePath(){
   if (!food || body.length===0){ currentPath = []; return; }
-  currentPath = findPathCells(body[0].pos, food.pos);
+  const blocked = new Set();
+  walls.forEach(w=>{ const idx = CELL_MAP.get(cellKeyOf(w.pos)); if (idx!==undefined) blocked.add(idx); });
+  currentPath = findPathCells(body[0].pos, food.pos, blocked);
 }
 
 /* ---------- tick ---------- */
@@ -779,6 +1129,11 @@ function tick(){
   for(const seg of checkList){
     if (seg.pos.distanceToSquared(newHead.pos) < 1e-4){ selfHit = true; break; }
   }
+  let wallHit = false;
+  for(const w of walls){
+    if (w.pos.distanceToSquared(newHead.pos) < 1e-4){ wallHit = true; break; }
+  }
+  const blocked = selfHit || wallHit;
 
   const wantsJump = pendingJump;
   pendingJump = false;
@@ -790,11 +1145,11 @@ function tick(){
   }
   headJumpFlag = jumped;
 
-  if (selfHit && !jumped){
+  if (blocked && !jumped){
     triggerGameOver();
     return;
   }
-  if (jumped) triggerJumpFX(selfHit);
+  if (jumped){ triggerJumpFX(blocked); sfxJump(); }
 
   let fx = null;
   for(let i=boosters.length-1;i>=0;i--){
@@ -803,17 +1158,19 @@ function tick(){
   for(let i=slowdowns.length-1;i>=0;i--){
     if (slowdowns[i].pos.distanceToSquared(newHead.pos) < 1e-4){ slowdowns.splice(i,1); fx='slow'; }
   }
-  if (fx === 'boost'){ speedModifier = 0.55; speedModifierEnd = performance.now()+4500; showToast('Boost !'); fillPowerups(); }
-  if (fx === 'slow'){ speedModifier = 1.8; speedModifierEnd = performance.now()+4500; showToast('Ralenti…'); fillPowerups(); }
+  if (fx === 'boost'){ speedModifier = boostModifier(); speedModifierEnd = performance.now()+4500; showToast('Boost !'); fillPowerups(); sfxBoost(); }
+  if (fx === 'slow'){ speedModifier = slowModifier(); speedModifierEnd = performance.now()+4500; showToast('Ralenti…'); fillPowerups(); sfxSlow(); }
 
   const oldBody = body;
   let newBody;
   if (ateFood){
     newBody = [newHead, ...oldBody];
     score += 10;
-    baseTickInterval = Math.max(MIN_INTERVAL, BASE_INTERVAL - score*SPEEDUP_PER_POINT);
+    baseTickInterval = Math.max(MIN_INTERVAL, CURRENT_LEVEL.baseInterval - score*CURRENT_LEVEL.speedup);
+    triggerEatFX(food.pos, food.normal);
     spawnFood();
     updateHUD();
+    sfxEat();
   } else {
     newBody = [newHead, ...oldBody.slice(0, -1)];
   }
@@ -830,6 +1187,7 @@ function tick(){
 
 function triggerGameOver(){
   gameOver = true; running = false;
+  sfxGameOver();
   if (score > best){ best = score; showNewBest(true); } else { showNewBest(false); }
   document.getElementById('finalScore').textContent = score;
   document.getElementById('finalBest').textContent = best;
@@ -844,6 +1202,7 @@ function updateHUD(){
   const dots = document.querySelectorAll('#jokerDots .jd');
   dots.forEach((d,idx)=> d.classList.toggle('used', idx >= jokersLeft));
   document.getElementById('btnJump').classList.toggle('depleted', jokersLeft <= 0);
+  document.getElementById('jokerTag').classList.toggle('none', !!CURRENT_LEVEL && CURRENT_LEVEL.jokers===0);
 }
 
 let toastTimer = null;
@@ -866,30 +1225,71 @@ function triggerJumpFX(wasNeeded){
 }
 
 /* ============================================================
-   SNAKE / FOOD / PATH / POWERUP RENDERING
+   SNAKE RENDERING (forme géométrique pure, couleur = univers)
 ============================================================ */
 let BODY_RADIUS = CELL*0.40;
 let HEAD_RADIUS = CELL*0.50;
+
+// Géométries partagées (jamais disposées : réutilisées par tous les segments d'une forme)
+// Note : les cylindres sont pivotés pour que leur grand axe suive le sens d'avancement (z local)
+const BODY_GEO = {
+  sphere: new THREE.SphereGeometry(1, 12, 10),
+  cube: new THREE.BoxGeometry(1,1,1),
+  diamond: new THREE.OctahedronGeometry(1,0),
+  prism: new THREE.CylinderGeometry(0.72,0.72,1,6).rotateX(Math.PI/2),
+};
+const HEAD_GEO = {
+  sphere: new THREE.SphereGeometry(1, 20, 16),
+  cube: new THREE.BoxGeometry(1.5,1.5,1.5),
+  diamond: new THREE.OctahedronGeometry(1,0),
+  prism: new THREE.CylinderGeometry(1,1,1.35,6).rotateX(Math.PI/2),
+};
+const NOSE_GEO = {
+  sphere: new THREE.ConeGeometry(1,1,12),
+  cube: new THREE.BoxGeometry(0.7,0.7,0.7),
+  diamond: new THREE.OctahedronGeometry(1,0),
+  prism: new THREE.ConeGeometry(0.55,1,6),
+};
 
 const bodyMeshes = [];
 const bodyGroup = new THREE.Group();
 cubeGroup.add(bodyGroup);
 
 function clearBodyPool(){
-  bodyMeshes.forEach(m=>{ m.geometry.dispose(); m.material.dispose(); bodyGroup.remove(m); });
+  // géométries partagées : on ne les dispose jamais, seule la matière est propre à chaque segment
+  bodyMeshes.forEach(m=>{ m.material.dispose(); bodyGroup.remove(m); });
   bodyMeshes.length = 0;
 }
+function bodyShapeScale(shape){
+  // z = axe d'avancement (le corps s'étire dans cette direction pour chevaucher
+  // le segment suivant et donner l'impression d'un corps continu, pas de cubes séparés)
+  if (shape==='sphere')  return {x:1.0,  y:1.0,  z:1.45};
+  if (shape==='cube')    return {x:1.04, y:0.92, z:1.28};
+  if (shape==='diamond') return {x:1.0,  y:1.0,  z:1.4};
+  return {x:1.06, y:1.06, z:1.22}; // prisme : hexagone étiré dans le sens de la marche
+}
+// Matière propre à chaque forme, pour un rendu plus soigné (verre, pierre, métal…)
+function bodyShapeMaterialProps(shape){
+  if (shape==='sphere')  return {roughness:0.3,  metalness:0.15};
+  if (shape==='cube')    return {roughness:0.6,  metalness:0.2};
+  if (shape==='diamond') return {roughness:0.08, metalness:0.05, transparent:true, opacity:0.94};
+  return {roughness:0.25, metalness:0.6}; // prisme : effet cristal métallique
+}
 function ensureBodyMeshCount(n){
-  const sk = SKINS[selectedSkin];
+  const uni = UNIVERSES[selectedCubeSkin];
+  const shape = SHAPES[selectedShape].key;
+  const matProps = bodyShapeMaterialProps(shape);
   while(bodyMeshes.length < n){
     const idx = bodyMeshes.length;
     const t = Math.min(1, idx/40);
-    const col = new THREE.Color().lerpColors(new THREE.Color(sk.glow), new THREE.Color(sk.tail), t);
-    const mat = new THREE.MeshStandardMaterial({color:col, emissive:col, emissiveIntensity:0.55, roughness:0.35, metalness:0.15});
-    const geo = new THREE.SphereGeometry(1, 14, 12);
+    const col = new THREE.Color().lerpColors(new THREE.Color(uni.snakeGlow), new THREE.Color(uni.snakeTail), t);
+    const mat = new THREE.MeshStandardMaterial(Object.assign({color:col, emissive:col, emissiveIntensity:0.55}, matProps));
+    const geo = BODY_GEO[shape];
     const mesh = new THREE.Mesh(geo, mat);
     mesh.castShadow = true; mesh.receiveShadow = true;
-    mesh.scale.setScalar(BODY_RADIUS * (1 - t*0.32));
+    const s = BODY_RADIUS * (1 - t*0.32);
+    const sc = bodyShapeScale(shape);
+    mesh.scale.set(s*sc.x, s*sc.y, s*sc.z);
     bodyGroup.add(mesh);
     bodyMeshes.push(mesh);
   }
@@ -897,10 +1297,13 @@ function ensureBodyMeshCount(n){
 }
 
 const headGroup = new THREE.Group();
-const headMesh = new THREE.Mesh(new THREE.SphereGeometry(1, 20, 16), new THREE.MeshStandardMaterial({roughness:0.25, metalness:0.2}));
+const headMesh = new THREE.Mesh(HEAD_GEO.sphere, new THREE.MeshStandardMaterial({roughness:0.25, metalness:0.2}));
 headMesh.castShadow = true;
 headGroup.add(headMesh);
-const noseMesh = new THREE.Mesh(new THREE.ConeGeometry(1,1,12), new THREE.MeshStandardMaterial({roughness:0.3}));
+const headEdgesMat = new THREE.LineBasicMaterial({color:0x39e6c3, transparent:true, opacity:0.4});
+const headEdges = new THREE.LineSegments(new THREE.EdgesGeometry(HEAD_GEO.sphere), headEdgesMat);
+headMesh.add(headEdges);
+const noseMesh = new THREE.Mesh(NOSE_GEO.sphere, new THREE.MeshStandardMaterial({roughness:0.3}));
 noseMesh.rotation.x = Math.PI/2;
 headGroup.add(noseMesh);
 const eyeMat = new THREE.MeshStandardMaterial({color:0x0a0d1e, emissive:0x0a0d1e});
@@ -911,40 +1314,118 @@ const headGlow = makeGlowSprite(0x39e6c3, 1);
 headGroup.add(headGlow);
 cubeGroup.add(headGroup);
 
-function applySkin(idx){
-  selectedSkin = idx;
-  const sk = SKINS[idx];
-  headMesh.material.color.setHex(sk.head);
-  headMesh.material.emissive.setHex(sk.glow);
+// Forme du serpent : géométrie uniquement (pas de couleur ici)
+function applyShape(idx){
+  selectedShape = idx;
+  const sh = SHAPES[idx].key;
+  headMesh.geometry = HEAD_GEO[sh];
+  noseMesh.geometry = NOSE_GEO[sh];
   headMesh.material.emissiveIntensity = 0.9;
-  noseMesh.material.color.setHex(sk.glow);
-  noseMesh.material.emissive.setHex(sk.glow);
+  const mp = bodyShapeMaterialProps(sh);
+  headMesh.material.roughness = mp.roughness;
+  headMesh.material.metalness = mp.metalness;
+  headMesh.material.transparent = !!mp.transparent;
+  headMesh.material.opacity = mp.opacity!==undefined ? mp.opacity : 1;
+  headEdges.geometry.dispose();
+  headEdges.geometry = new THREE.EdgesGeometry(HEAD_GEO[sh]);
+  layoutHead();
+  clearBodyPool();
+}
+
+function layoutHead(){
+  const shape = SHAPES[selectedShape].key;
+  const boxFactor = shape==='cube' ? 0.82 : 1;
+  headBoxFactor = boxFactor;
+  headMesh.scale.setScalar(HEAD_RADIUS * boxFactor);
+  if (shape==='sphere'){
+    noseMesh.scale.set(HEAD_RADIUS*0.55, HEAD_RADIUS*0.85, HEAD_RADIUS*0.55);
+    noseMesh.position.set(0,0,HEAD_RADIUS*0.95);
+  } else if (shape==='cube'){
+    noseMesh.scale.setScalar(HEAD_RADIUS*0.5);
+    noseMesh.position.set(0,0,HEAD_RADIUS*0.85);
+  } else if (shape==='diamond'){
+    noseMesh.scale.setScalar(HEAD_RADIUS*0.48);
+    noseMesh.position.set(0,0,HEAD_RADIUS*0.95);
+  } else {
+    noseMesh.scale.set(HEAD_RADIUS*0.42, HEAD_RADIUS*0.7, HEAD_RADIUS*0.42);
+    noseMesh.position.set(0,0,HEAD_RADIUS*1.0);
+  }
+  eyeL.scale.setScalar(HEAD_RADIUS*0.16);
+  eyeR.scale.setScalar(HEAD_RADIUS*0.16);
+  eyeL.position.set(-HEAD_RADIUS*0.42, HEAD_RADIUS*0.25, HEAD_RADIUS*0.72);
+  eyeR.position.set( HEAD_RADIUS*0.42, HEAD_RADIUS*0.25, HEAD_RADIUS*0.72);
+  headGlow.scale.setScalar(HEAD_RADIUS*4.2);
+}
+
+// Couleur du serpent : suit toujours l'univers choisi (pas de choix séparé)
+function applySnakeColors(idx){
+  const uni = UNIVERSES[idx];
+  headMesh.material.color.setHex(uni.snakeHead);
+  headMesh.material.emissive.setHex(uni.snakeGlow);
+  headMesh.material.emissiveIntensity = 0.9;
+  noseMesh.material.color.setHex(uni.snakeGlow);
+  noseMesh.material.emissive.setHex(uni.snakeGlow);
   noseMesh.material.emissiveIntensity = 1.0;
-  headGlow.material.color.setHex(sk.glow);
+  headGlow.material.color.setHex(uni.snakeGlow);
+  headEdgesMat.color.setHex(uni.snakeGlow);
   clearBodyPool();
 }
 
 function updateRadii(){
   BODY_RADIUS = CELL*0.40;
   HEAD_RADIUS = CELL*0.50;
-  headMesh.scale.setScalar(HEAD_RADIUS);
-  noseMesh.scale.set(HEAD_RADIUS*0.55, HEAD_RADIUS*0.85, HEAD_RADIUS*0.55);
-  noseMesh.position.set(0,0,HEAD_RADIUS*0.95);
-  eyeL.scale.setScalar(HEAD_RADIUS*0.16);
-  eyeR.scale.setScalar(HEAD_RADIUS*0.16);
-  eyeL.position.set(-HEAD_RADIUS*0.42, HEAD_RADIUS*0.25, HEAD_RADIUS*0.72);
-  eyeR.position.set( HEAD_RADIUS*0.42, HEAD_RADIUS*0.25, HEAD_RADIUS*0.72);
+  layoutHead();
   clearBodyPool();
 }
 
-/* ---------- Food ---------- */
+/* ---------- Food (jaune, couleur fixe pour rester lisible dans tous les univers) ---------- */
 const foodGroup = new THREE.Group();
-const foodMesh = new THREE.Mesh(new THREE.IcosahedronGeometry(1, 0), new THREE.MeshStandardMaterial({color:0xffb673, emissive:0xff9d5c, emissiveIntensity:1.1, roughness:0.2, metalness:0.1}));
+const foodMesh = new THREE.Mesh(new THREE.IcosahedronGeometry(1, 0), new THREE.MeshStandardMaterial({color:0xffd23c, emissive:0xffcc33, emissiveIntensity:1.1, roughness:0.2, metalness:0.1}));
 foodMesh.castShadow = true;
 foodGroup.add(foodMesh);
-const foodGlow = makeGlowSprite(0xff9d5c, 1);
+const foodGlow = makeGlowSprite(0xffcc33, 1);
 foodGroup.add(foodGlow);
 cubeGroup.add(foodGroup);
+
+/* ---------- Animation "manger" : éclat de particules + tête qui gobe ---------- */
+const EAT_PARTICLES = 8;
+const eatSprites = [];
+for(let i=0;i<EAT_PARTICLES;i++){ const s = makeGlowSprite(0xffd23c, 1); s.visible=false; cubeGroup.add(s); eatSprites.push(s); }
+let eatBurst = null; // {pos, normal, start}
+let eatDirs = [];
+let headBounceUntil = 0;
+let headBoxFactor = 1;
+function triggerEatFX(pos, normal){
+  eatBurst = {pos:pos.clone(), normal:normal.clone(), start:performance.now()};
+  const arbitrary = Math.abs(normal.x)<0.9 ? new THREE.Vector3(1,0,0) : new THREE.Vector3(0,1,0);
+  const t1 = new THREE.Vector3().crossVectors(normal, arbitrary).normalize();
+  const t2 = new THREE.Vector3().crossVectors(normal, t1).normalize();
+  eatDirs = [];
+  for(let i=0;i<EAT_PARTICLES;i++){
+    const ang = (i/EAT_PARTICLES)*Math.PI*2 + Math.random()*0.5;
+    eatDirs.push(t1.clone().multiplyScalar(Math.cos(ang)).add(t2.clone().multiplyScalar(Math.sin(ang))));
+  }
+  headBounceUntil = performance.now() + 200;
+}
+function renderEatFX(now){
+  if (!eatBurst) return;
+  const age = now - eatBurst.start;
+  const dur = 380;
+  if (age > dur){
+    eatBurst = null;
+    eatSprites.forEach(s=>s.visible=false);
+    return;
+  }
+  const t = age/dur;
+  for(let i=0;i<EAT_PARTICLES;i++){
+    const s = eatSprites[i];
+    const dist = CELL*0.55*t;
+    s.position.copy(eatBurst.pos).addScaledVector(eatBurst.normal, CELL*0.15).addScaledVector(eatDirs[i], dist);
+    s.scale.setScalar(CELL*0.42*(1-t));
+    s.material.opacity = 0.9*(1-t);
+    s.visible = true;
+  }
+}
 
 /* ---------- Path markers (route dorée au sol) ---------- */
 const PATH_MAX = 80;
@@ -961,8 +1442,10 @@ for(let i=0;i<PATH_MAX;i++){
 }
 const _qAlign = new THREE.Quaternion();
 const _upZ = new THREE.Vector3(0,0,1);
+const _upY = new THREE.Vector3(0,1,0);
 function renderPath(){
-  const pts = currentPath.slice(1, -1); // sans la case tête ni la case pomme
+  const visible = CURRENT_LEVEL && CURRENT_LEVEL.pathVisible;
+  const pts = visible ? currentPath.slice(1, -1) : [];
   for(let i=0;i<pathMarkers.length;i++){
     const m = pathMarkers[i];
     if (i < pts.length && running && !gameOver){
@@ -979,7 +1462,7 @@ function renderPath(){
   }
 }
 
-/* ---------- Boosters / ralentisseurs ---------- */
+/* ---------- Boosters / ralentisseurs (couleur suit l'univers) ---------- */
 function makePowerupMesh(geo, color){
   const g = new THREE.Group();
   const mat = new THREE.MeshStandardMaterial({color, emissive:color, emissiveIntensity:1.1, roughness:0.3});
@@ -998,10 +1481,106 @@ const slowGroup = new THREE.Group(); cubeGroup.add(slowGroup);
 const boosterMeshes = [], slowMeshes = [];
 const boosterGeo = new THREE.ConeGeometry(1,1.7,4);
 const slowGeo = new THREE.OctahedronGeometry(1,0);
-for(let i=0;i<MAX_POWERUPS;i++){ const g = makePowerupMesh(boosterGeo, 0x8cff3c); boosterGroup.add(g); boosterMeshes.push(g); }
-for(let i=0;i<MAX_POWERUPS;i++){ const g = makePowerupMesh(slowGeo, 0x7c6cff); slowGroup.add(g); slowMeshes.push(g); }
+// Couleurs fixes pour rester lisibles quel que soit l'univers : bleu = boost, rouge = ralentisseur
+for(let i=0;i<MAX_POWERUPS;i++){ const g = makePowerupMesh(boosterGeo, 0x2e8fff); boosterGroup.add(g); boosterMeshes.push(g); }
+for(let i=0;i<MAX_POWERUPS;i++){ const g = makePowerupMesh(slowGeo, 0xff3b3b); slowGroup.add(g); slowMeshes.push(g); }
 
-const _upY = new THREE.Vector3(0,1,0);
+/* ---------- Murs (apparence liée à l'univers) ---------- */
+function buildWallProp(shape, color, emissive){
+  const g = new THREE.Group();
+  const mats = [];
+  function mat(c,e,opts){
+    const m = new THREE.MeshStandardMaterial(Object.assign({color:c, emissive:e, emissiveIntensity:0.8, roughness:0.5}, opts||{}));
+    m.userData.base = m.emissiveIntensity;
+    mats.push(m);
+    return m;
+  }
+  if (shape==='tree'){
+    const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.09,0.14,0.7,6), mat(color, color, {emissiveIntensity:0.15, roughness:0.9}));
+    trunk.position.y = 0.35; g.add(trunk);
+    const foliage = new THREE.Mesh(new THREE.ConeGeometry(0.42,0.62,7), mat(emissive, emissive, {emissiveIntensity:0.55, roughness:0.6}));
+    foliage.position.y = 0.92; g.add(foliage);
+  } else if (shape==='coral'){
+    const branchMat = mat(color, emissive, {emissiveIntensity:0.6, roughness:0.45});
+    [[0,0.28,0,0.15,0.55,0],[0.17,0.2,0.08,0.1,0.4,0.5],[-0.15,0.18,-0.08,0.1,0.36,-0.45]].forEach(a=>{
+      const branch = new THREE.Mesh(new THREE.ConeGeometry(a[3],a[4],6), branchMat);
+      branch.position.set(a[0],a[1],a[2]); branch.rotation.z = a[5];
+      g.add(branch);
+    });
+  } else if (shape==='lava'){
+    const rock = new THREE.Mesh(new THREE.IcosahedronGeometry(0.48,0), mat(color, emissive, {emissiveIntensity:1.2, roughness:0.4}));
+    rock.position.y = 0.4; rock.scale.set(1,1.3,1);
+    g.add(rock);
+  } else if (shape==='ice'){
+    const block = new THREE.Mesh(new THREE.BoxGeometry(0.6,0.85,0.6), mat(color, emissive, {emissiveIntensity:0.75, roughness:0.15, metalness:0.1, transparent:true, opacity:0.82}));
+    block.position.y = 0.42;
+    g.add(block);
+  } else if (shape==='circuit'){
+    const panelGeo = new THREE.BoxGeometry(0.5,0.85,0.09);
+    const panel = new THREE.Mesh(panelGeo, mat(color, emissive, {emissiveIntensity:1.3, roughness:0.35, metalness:0.5}));
+    panel.position.y = 0.42;
+    g.add(panel);
+    const rim = new THREE.LineSegments(new THREE.EdgesGeometry(panelGeo), new THREE.LineBasicMaterial({color:emissive}));
+    rim.position.copy(panel.position);
+    g.add(rim);
+  } else {
+    const rock = new THREE.Mesh(new THREE.IcosahedronGeometry(0.46,0), mat(color, emissive, {emissiveIntensity:0.55, roughness:0.75}));
+    rock.position.y = 0.4; rock.scale.set(1,0.85,1.1);
+    g.add(rock);
+  }
+  g.traverse(o=>{ if (o.isMesh) o.castShadow = true; });
+  g.userData.mats = mats;
+  g.visible = false;
+  return g;
+}
+const wallGroup = new THREE.Group(); cubeGroup.add(wallGroup);
+const wallMeshes = [];
+const WALL_POOL = 20;
+function disposeWallPool(){
+  wallMeshes.forEach(g=>{
+    g.traverse(o=>{
+      if (o.isMesh || o.isLineSegments){ o.geometry.dispose(); o.material.dispose(); }
+    });
+    wallGroup.remove(g);
+  });
+  wallMeshes.length = 0;
+}
+function rebuildWallPool(){
+  disposeWallPool();
+  const uni = UNIVERSES[selectedCubeSkin];
+  for(let i=0;i<WALL_POOL;i++){
+    const g = buildWallProp(uni.wallShape, uni.wallColor, uni.wallEmissive);
+    wallGroup.add(g);
+    wallMeshes.push(g);
+  }
+}
+function renderWalls(now){
+  for(let i=0;i<wallMeshes.length;i++){
+    const g = wallMeshes[i];
+    if (i < walls.length && running && !gameOver){
+      const w = walls[i];
+      let growth = 1, mul = 1;
+      if (!w.permanent){
+        const age = now - w.start;
+        const remaining = w.duration - age;
+        if (age < 250) growth = age/250;
+        else if (remaining < 400) growth = Math.max(0, remaining/400);
+        mul = remaining < 1200 ? (1.3 + Math.sin(now*0.02)*0.7) : 1.15;
+      } else {
+        mul = 1.0 + Math.sin(now*0.003 + i)*0.25;
+      }
+      g.position.copy(w.pos).addScaledVector(w.normal, 0.01);
+      _qAlign.setFromUnitVectors(_upY, w.normal);
+      g.quaternion.copy(_qAlign);
+      g.scale.setScalar(CELL * growth);
+      g.userData.mats.forEach(m=> m.emissiveIntensity = m.userData.base * mul);
+      g.visible = growth > 0.02;
+    } else {
+      g.visible = false;
+    }
+  }
+}
+
 function renderPowerups(dt){
   for(let i=0;i<boosterMeshes.length;i++){
     const g = boosterMeshes[i];
@@ -1031,6 +1610,15 @@ function renderPowerups(dt){
   }
 }
 
+function applyCubeSkin(idx){
+  selectedCubeSkin = idx;
+  disposeFaces();
+  buildFaces();
+  edgeLines.material.color.setHex(UNIVERSES[idx].edge);
+  rebuildWallPool();
+  applySnakeColors(idx);
+}
+
 /* ============================================================
    CUBE SIZE MANAGEMENT
 ============================================================ */
@@ -1043,7 +1631,6 @@ function setCubeSize(n){
   buildAllCells();
   buildAdjacency();
   updateRadii();
-  document.getElementById('sizeVal').textContent = N + ' × ' + N;
 }
 
 /* ============================================================
@@ -1064,17 +1651,6 @@ document.getElementById('btnLeft').addEventListener('mousedown', ()=>queueTurn('
 document.getElementById('btnRight').addEventListener('mousedown', ()=>queueTurn('R'));
 document.getElementById('btnJump').addEventListener('touchstart', e=>{e.preventDefault(); queueJump();}, {passive:false});
 document.getElementById('btnJump').addEventListener('mousedown', ()=>queueJump());
-
-function quitToMenu(){
-  if (running && !gameOver && score > best){ best = score; }
-  running = false; gameOver = true;
-  showTab('play');
-  document.getElementById('startScreen').classList.remove('hidden');
-  document.getElementById('gameOverScreen').classList.add('hidden');
-  updateHUD();
-}
-document.getElementById('quitBtn').addEventListener('click', quitToMenu);
-document.getElementById('quitBtn').addEventListener('touchend', e=>{e.preventDefault(); quitToMenu();}, {passive:false});
 
 window.addEventListener('keydown', e=>{
   if (['ArrowLeft','a','A'].includes(e.key)) queueTurn('L');
@@ -1098,52 +1674,163 @@ canvas.addEventListener('touchend', e=>{
   if (Math.abs(dx) > 34 && Math.abs(dx) > Math.abs(dy)*1.4) queueTurn(dx > 0 ? 'R' : 'L');
 }, {passive:true});
 
+function quitToMenu(){
+  if (running && !gameOver && score > best){ best = score; }
+  running = false; gameOver = true; paused = false;
+  showTab('play');
+  document.getElementById('startScreen').classList.remove('hidden');
+  document.getElementById('gameOverScreen').classList.add('hidden');
+  updateHUD();
+}
+function openQuitConfirm(){
+  if (gameOver || !running){ quitToMenu(); return; }
+  paused = true;
+  document.getElementById('quitScoreVal').textContent = score;
+  document.getElementById('quitConfirm').classList.remove('hidden');
+}
+function closeQuitConfirm(){
+  paused = false;
+  document.getElementById('quitConfirm').classList.add('hidden');
+}
+document.getElementById('quitBtn').addEventListener('click', openQuitConfirm);
+document.getElementById('quitBtn').addEventListener('touchend', e=>{e.preventDefault(); openQuitConfirm();}, {passive:false});
+document.getElementById('quitCancelBtn').addEventListener('click', closeQuitConfirm);
+document.getElementById('quitCancelBtn').addEventListener('touchend', e=>{e.preventDefault(); closeQuitConfirm();}, {passive:false});
+document.getElementById('quitConfirmBtn').addEventListener('click', ()=>{ document.getElementById('quitConfirm').classList.add('hidden'); quitToMenu(); });
+document.getElementById('quitConfirmBtn').addEventListener('touchend', e=>{e.preventDefault(); document.getElementById('quitConfirm').classList.add('hidden'); quitToMenu();}, {passive:false});
+document.getElementById('muteBtn').addEventListener('click', toggleSound);
+document.getElementById('muteBtn').addEventListener('touchend', e=>{e.preventDefault(); toggleSound();}, {passive:false});
+
 /* ============================================================
    MENU WIRING
 ============================================================ */
 const skinGridEl = document.getElementById('skinGrid');
-SKINS.forEach((sk, idx)=>{
+SHAPES.forEach((sh, idx)=>{
   const wrap = document.createElement('div');
-  const dot = document.createElement('div');
-  dot.className = 'skinDot' + (idx===selectedSkin ? ' selected' : '');
-  const headHex = '#'+sk.head.toString(16).padStart(6,'0');
-  const tailHex = '#'+sk.tail.toString(16).padStart(6,'0');
-  const glowHex = '#'+sk.glow.toString(16).padStart(6,'0');
-  dot.style.background = 'linear-gradient(135deg,'+headHex+','+tailHex+')';
-  dot.style.color = glowHex;
-  dot.dataset.idx = idx;
-  dot.addEventListener('click', ()=>selectSkin(idx));
-  dot.addEventListener('touchend', e=>{e.preventDefault(); selectSkin(idx);}, {passive:false});
-  wrap.appendChild(dot);
+  const icon = document.createElement('div');
+  icon.className = 'shapeIcon ' + sh.key + (idx===selectedShape ? ' selected' : '');
+  const accent = '#'+UNIVERSES[selectedCubeSkin].snakeGlow.toString(16).padStart(6,'0');
+  icon.style.color = accent;
+  icon.style.background = accent;
+  icon.dataset.idx = idx;
+  const label = document.createElement('div');
+  label.className = 'skinName';
+  label.textContent = sh.name;
+  icon.addEventListener('click', ()=>selectShape(idx));
+  icon.addEventListener('touchend', e=>{e.preventDefault(); selectShape(idx);}, {passive:false});
+  wrap.appendChild(icon); wrap.appendChild(label);
   skinGridEl.appendChild(wrap);
 });
-function selectSkin(idx){
-  applySkin(idx);
-  document.querySelectorAll('.skinDot').forEach(el=>{
+function refreshShapeIconColors(){
+  const accent = '#'+UNIVERSES[selectedCubeSkin].snakeGlow.toString(16).padStart(6,'0');
+  document.querySelectorAll('.shapeIcon').forEach(el=>{
+    el.style.color = accent;
+    el.style.background = accent;
+  });
+}
+function selectShape(idx){
+  applyShape(idx);
+  document.querySelectorAll('.shapeIcon').forEach(el=>{
     el.classList.toggle('selected', Number(el.dataset.idx)===idx);
   });
 }
 
-const LEVELS = [
-  {name:'Facile',    n:12},
-  {name:'Normal',    n:9},
-  {name:'Difficile', n:7},
-  {name:'Expert',    n:6},
-];
-let pendingN = N;
-const levelGridEl = document.getElementById('levelGrid');
-LEVELS.forEach(lv=>{
+const uniGridEl = document.getElementById('uniGrid');
+UNIVERSES.forEach((uni, idx)=>{
   const card = document.createElement('div');
-  card.className = 'levelCard' + (lv.n===pendingN ? ' selected' : '');
-  card.dataset.n = lv.n;
-  card.innerHTML = '<div class="lvName">'+lv.name+'</div><div class="lvSize">'+lv.n+' × '+lv.n+'</div>';
-  card.addEventListener('click', ()=>selectLevel(lv.n));
-  card.addEventListener('touchend', e=>{e.preventDefault(); selectLevel(lv.n);}, {passive:false});
-  levelGridEl.appendChild(card);
+  card.className = 'uniCard' + (idx===selectedCubeSkin ? ' selected' : '');
+  card.dataset.idx = idx;
+  card.style.color = uni.tints[0];
+  const sw = document.createElement('div');
+  sw.className = 'uniSwatch';
+  sw.style.background = 'linear-gradient(135deg,'+uni.tints[0]+','+uni.tints[1]+' 55%,'+uni.tints[3]+')';
+  const nm = document.createElement('div');
+  nm.className = 'uniName';
+  nm.textContent = uni.name;
+  card.appendChild(sw); card.appendChild(nm);
+  card.addEventListener('click', ()=>selectUniverse(idx));
+  card.addEventListener('touchend', e=>{e.preventDefault(); selectUniverse(idx);}, {passive:false});
+  uniGridEl.appendChild(card);
 });
-function selectLevel(n){
-  pendingN = n;
-  document.querySelectorAll('.levelCard').forEach(c=> c.classList.toggle('selected', Number(c.dataset.n)===n));
+function selectUniverse(idx){
+  applyCubeSkin(idx);
+  document.querySelectorAll('.uniCard').forEach(el=>{
+    el.classList.toggle('selected', Number(el.dataset.idx)===idx);
+  });
+  refreshShapeIconColors();
+}
+
+const levelListEl = document.getElementById('levelList');
+LEVELS.forEach((lv, idx)=>{
+  const row = document.createElement('div');
+  row.className = 'levelRow' + (idx===pendingLevelIdx ? ' selected' : '');
+  row.dataset.idx = idx;
+  row.innerHTML =
+    '<div class="lvMain"><div class="lvName">'+(idx+1)+'. '+lv.name+'</div><div class="lvTag">'+lv.tag+'</div></div>'+
+    '<div class="lvSize">'+lv.n+'×'+lv.n+'</div>';
+  row.addEventListener('click', ()=>selectLevel(idx));
+  row.addEventListener('touchend', e=>{e.preventDefault(); selectLevel(idx);}, {passive:false});
+  levelListEl.appendChild(row);
+});
+function selectLevel(idx){
+  pendingLevelIdx = idx;
+  document.querySelectorAll('.levelRow').forEach(el=> el.classList.toggle('selected', Number(el.dataset.idx)===idx));
+  document.getElementById('devPanel').classList.toggle('hidden', !LEVELS[idx].custom);
+}
+
+/* ---------- Panneau Développeur (niveau entièrement personnalisable) ---------- */
+function bindRange(id, valId, fmt){
+  const el = document.getElementById(id);
+  const val = document.getElementById(valId);
+  const update = ()=>{ val.textContent = fmt(parseFloat(el.value)); };
+  el.addEventListener('input', update);
+  update();
+}
+const DEV_SPEED_LABELS = ['Très lente','Lente','Lente','Modérée','Normale','Normale','Rapide','Rapide','Très rapide','Extrême'];
+bindRange('devN','devNVal', v=>v+' × '+v);
+bindRange('devSpeed','devSpeedVal', v=> DEV_SPEED_LABELS[Math.max(0,Math.min(9,v-1))]);
+bindRange('devRamp','devRampVal', v=> v===0 ? 'Constante' : (v/10).toFixed(1)+'×/pt');
+bindRange('devWalls','devWallsVal', v=>v);
+bindRange('devJokers','devJokersVal', v=> v===0 ? '0 (aucune sécurité)' : v);
+bindRange('devPopMin','devPopMinVal', v=>v);
+bindRange('devPopMax','devPopMaxVal', v=>v);
+bindRange('devPopDur','devPopDurVal', v=>v);
+bindRange('devPopMaxCount','devPopMaxCountVal', v=>v);
+
+let devPopOn = false;
+let devPathOn = true;
+document.getElementById('devPopToggle').addEventListener('click', ()=>{
+  devPopOn = !devPopOn;
+  const btn = document.getElementById('devPopToggle');
+  btn.textContent = devPopOn ? 'On' : 'Off';
+  btn.classList.toggle('on', devPopOn);
+  document.getElementById('devPopSub').classList.toggle('hidden', !devPopOn);
+});
+document.getElementById('devPathToggle').addEventListener('click', ()=>{
+  devPathOn = !devPathOn;
+  const btn = document.getElementById('devPathToggle');
+  btn.textContent = devPathOn ? 'On' : 'Off';
+  btn.classList.toggle('on', devPathOn);
+});
+
+function getDevLevel(){
+  const n = parseInt(document.getElementById('devN').value,10);
+  const speedVal = parseInt(document.getElementById('devSpeed').value,10);
+  const baseInterval = Math.round(650 - speedVal*48);
+  const rampVal = parseInt(document.getElementById('devRamp').value,10);
+  const speedup = rampVal/10;
+  const fixedWalls = parseInt(document.getElementById('devWalls').value,10);
+  const jokers = parseInt(document.getElementById('devJokers').value,10);
+  let pop = null;
+  if (devPopOn){
+    const minGap = parseFloat(document.getElementById('devPopMin').value)*1000;
+    const maxGapRaw = parseFloat(document.getElementById('devPopMax').value)*1000;
+    const maxGap = Math.max(minGap+200, maxGapRaw);
+    const dur = parseFloat(document.getElementById('devPopDur').value)*1000;
+    const maxCount = parseInt(document.getElementById('devPopMaxCount').value,10);
+    pop = {max:maxCount, minGap, maxGap, minDur:dur, maxDur:dur+800};
+  }
+  return {key:'dev', name:'Développeur', n, fixedWalls, pop, baseInterval, speedup, jokers, pathVisible:devPathOn, tier:2, tag:'Personnalisé', custom:true};
 }
 
 function showTab(name){
@@ -1158,7 +1845,11 @@ const startScreen = document.getElementById('startScreen');
 const gameOverScreen = document.getElementById('gameOverScreen');
 
 function startGame(){
-  setCubeSize(pendingN);
+  ensureAudio();
+  let level = LEVELS[pendingLevelIdx];
+  if (level.custom) level = getDevLevel();
+  setCubeSize(level.n);
+  applyLevel(level);
   resetGame();
   running = true;
   startScreen.classList.add('hidden');
@@ -1167,8 +1858,8 @@ function startGame(){
 }
 document.getElementById('startBtn').addEventListener('click', startGame);
 document.getElementById('startBtn').addEventListener('touchend', e=>{e.preventDefault(); startGame();}, {passive:false});
-document.getElementById('retryBtn').addEventListener('click', startGame);
-document.getElementById('retryBtn').addEventListener('touchend', e=>{e.preventDefault(); startGame();}, {passive:false});
+document.getElementById('retryBtn').addEventListener('click', quitToMenu);
+document.getElementById('retryBtn').addEventListener('touchend', e=>{e.preventDefault(); quitToMenu();}, {passive:false});
 
 /* ============================================================
    RESIZE
@@ -1187,7 +1878,9 @@ resize();
    INITIAL BUILD
 ============================================================ */
 setCubeSize(N);
-applySkin(selectedSkin);
+applyShape(selectedShape);
+rebuildWallPool();
+applySnakeColors(selectedCubeSkin);
 resetGame();
 
 /* ============================================================
@@ -1222,10 +1915,31 @@ function animate(now){
   foodGlow.scale.setScalar(CELL*2.6);
   if (food) foodGroup.position.copy(food.pos).addScaledVector(food.normal, CELL*0.32);
   foodGroup.visible = !!food && running && !gameOver;
+  renderEatFX(now);
 
   renderPowerups(dt);
 
-  if (running && !gameOver){
+  if (running && !gameOver && !paused){
+    let wallsChanged = false;
+    for(let i=walls.length-1;i>=0;i--){
+      const w = walls[i];
+      if (!w.permanent && now - w.start > w.duration){ walls.splice(i,1); wallsChanged = true; }
+    }
+    const pop = CURRENT_LEVEL.pop;
+    if (pop){
+      let activePop = 0;
+      for(const w of walls) if (!w.permanent) activePop++;
+      if (activePop < pop.max && now > nextPopWallTime){
+        spawnPopWall(pop);
+        nextPopWallTime = now + pop.minGap + Math.random()*(pop.maxGap-pop.minGap);
+        wallsChanged = true;
+      }
+    }
+    if (wallsChanged) recomputePath();
+  }
+  renderWalls(now);
+
+  if (running && !gameOver && !paused){
     const effectiveInterval = Math.max(70, baseTickInterval * speedModifier);
     tickAccum += dt*1000;
     while (tickAccum >= effectiveInterval){
@@ -1240,6 +1954,12 @@ function animate(now){
   headGroup.visible = running;
   bodyGroup.visible = running;
 
+  if (SHAPES[selectedShape].key === 'diamond' && running){
+    for(let i=0;i<bodyMeshes.length;i++){
+      bodyMeshes[i].material.emissiveIntensity = 0.5 + Math.sin(now*0.006 + i*0.7)*0.35;
+    }
+  }
+
   for(let i=0;i<body.length;i++){
     const from = renderFrom[i] || body[i];
     const to = body[i];
@@ -1248,15 +1968,21 @@ function animate(now){
     if (i===0 && headJumpFlag){
       p.addScaledVector(to.normal, Math.sin(Math.min(1,tickAlpha)*Math.PI) * CELL*0.85);
     }
+    const qa = frameQuaternion(from);
+    const qb = frameQuaternion(to);
+    _tmpQ1.copy(qa).slerp(qb, tickAlpha);
     if (i===0){
       headGroup.position.copy(p);
-      const qa = frameQuaternion(from);
-      const qb = frameQuaternion(to);
-      _tmpQ1.copy(qa).slerp(qb, tickAlpha);
       headGroup.quaternion.copy(_tmpQ1);
+      let bounce = 1;
+      if (now < headBounceUntil){
+        const bt = 1 - (headBounceUntil - now)/200;
+        bounce = 1 + Math.sin(Math.min(1,bt)*Math.PI)*0.24;
+      }
+      headMesh.scale.setScalar(HEAD_RADIUS*headBoxFactor*bounce);
     } else {
       const m = bodyMeshes[i-1];
-      if (m) m.position.copy(p);
+      if (m){ m.position.copy(p); m.quaternion.copy(_tmpQ1); }
     }
   }
 
