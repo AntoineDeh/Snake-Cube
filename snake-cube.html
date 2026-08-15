@@ -185,6 +185,17 @@
   }
   h1 span{color:var(--teal); text-shadow:0 0 22px #39e6c377;}
   .desc{font-size:12px; line-height:1.6; color:var(--ink-dim); margin:0 0 18px;}
+  .cheatInput{
+    width:100%; padding:12px 14px; border-radius:11px; border:1px solid var(--panel-line);
+    background:#00000030; color:var(--ink); font-family:'IBM Plex Mono',monospace; font-size:14px;
+    outline:none; text-align:center; letter-spacing:.04em;
+  }
+  .cheatInput:focus{border-color:var(--gold);}
+  .cheatInput.shake{animation: shakeX .35s ease;}
+  @keyframes shakeX{
+    0%,100%{transform:translateX(0);} 20%{transform:translateX(-8px);} 40%{transform:translateX(8px);}
+    60%{transform:translateX(-5px);} 80%{transform:translateX(5px);}
+  }
   .desc b{color:var(--ink); font-weight:600;}
 
   .section{margin-bottom:16px; text-align:left;}
@@ -199,7 +210,7 @@
     position:relative; transition:transform .15s ease, border-color .15s ease;
   }
   .skinDot.selected{border-color:#fff; box-shadow:0 0 0 3px #ffffff22, 0 0 14px currentColor; transform:scale(1.1);}
-  .shapeGrid{display:grid; grid-template-columns:repeat(4,1fr); gap:14px; max-width:260px; margin:0 auto;}
+  .shapeGrid{display:grid; grid-template-columns:repeat(3,1fr); gap:14px; max-width:260px; margin:0 auto;}
   .shapeIcon{
     width:36px; height:36px; margin:0 auto; border:2px solid transparent; cursor:pointer;
     transition:transform .15s ease, border-color .15s ease;
@@ -208,6 +219,8 @@
   .shapeIcon.cube{border-radius:7px;}
   .shapeIcon.diamond{border-radius:5px; transform:rotate(45deg); width:28px; height:28px; margin:4px auto;}
   .shapeIcon.prism{clip-path:polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%); border-radius:0;}
+  .shapeIcon.pyramide{clip-path:polygon(50% 0%, 0% 100%, 100% 100%); border-radius:0;}
+  .shapeIcon.tetra{clip-path:polygon(50% 100%, 0% 0%, 100% 0%); border-radius:0;}
   .shapeIcon.selected{border-color:#fff !important; box-shadow:0 0 14px currentColor; transform:scale(1.12) rotate(var(--r,0deg));}
   .shapeIcon.locked{opacity:.32; filter:grayscale(.6);}
   .shapeIcon.diamond.selected{transform:rotate(45deg) scale(1.15);}
@@ -265,6 +278,28 @@
   }
   .devToggle.on{background:linear-gradient(135deg,var(--teal),#21b8a1); color:#04120e; border-color:transparent;}
   #devPopSub{margin-left:2px; padding-left:10px; border-left:2px solid var(--panel-line);}
+
+  .statsGrid{display:grid; grid-template-columns:repeat(3,1fr); gap:8px;}
+  .statItem{border:1px solid var(--panel-line); border-radius:10px; padding:9px 6px; text-align:center; background:#ffffff06;}
+  .statItem .statVal{font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:16px; color:var(--teal);}
+  .statItem .statLbl{font-size:8px; color:var(--ink-dim); margin-top:3px; letter-spacing:.01em; line-height:1.3;}
+
+  .challengeList{display:flex; flex-direction:column; gap:6px; max-height:280px; overflow-y:auto; padding:2px 3px 2px 0;}
+  .challRow{
+    display:flex; align-items:center; gap:9px;
+    border:1px solid var(--panel-line); border-radius:9px; padding:7px 10px;
+    background:#ffffff06;
+  }
+  .challRow.done{border-color:var(--teal); background:#39e6c31a;}
+  .challCheck{
+    flex:none; width:18px; height:18px; border-radius:5px; border:1px solid var(--panel-line);
+    display:flex; align-items:center; justify-content:center; font-size:11px; color:var(--teal);
+  }
+  .challRow.done .challCheck{background:var(--teal); color:#04120e; border-color:var(--teal);}
+  .challMain{flex:1; min-width:0;}
+  .challLabel{font-size:10.5px; color:var(--ink); line-height:1.3;}
+  .challRow.done .challLabel{color:var(--ink-dim); text-decoration:line-through;}
+  .challReward{flex:none; font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:10.5px; color:var(--gold); white-space:nowrap;}
 
   .rulesList{display:flex; flex-direction:column; gap:12px; max-height:300px; overflow-y:auto; padding:2px 4px 2px 0; margin-bottom:6px;}
   .ruleItem{display:flex; gap:10px; align-items:flex-start; text-align:left;}
@@ -349,11 +384,12 @@
   <div class="overlay" id="startScreen">
     <div class="panel">
       <div class="eyebrow">Spécimen en observation</div>
-      <h1>CUBE<span>//</span>SNAKE</h1>
+      <h1 id="titleTap">CUBE<span>//</span>SNAKE</h1>
 
       <div class="tabs">
         <button class="tabBtn active" data-tab="play" type="button">Jouer</button>
         <button class="tabBtn" data-tab="skin" type="button">Apparence</button>
+        <button class="tabBtn" data-tab="challenges" type="button">Défis</button>
         <button class="tabBtn" data-tab="rules" type="button">Règles</button>
       </div>
 
@@ -417,6 +453,17 @@
         <div class="section" style="margin-bottom:6px;">
           <div class="sectionLbl">Forme du serpent (indépendante de l'univers)</div>
           <div class="shapeGrid" id="skinGrid"></div>
+        </div>
+      </div>
+
+      <div class="tabPanel hidden" data-panel="challenges">
+        <div class="section" style="margin-bottom:14px;">
+          <div class="sectionLbl">Statistiques</div>
+          <div class="statsGrid" id="statsGrid"></div>
+        </div>
+        <div class="section" style="margin-bottom:4px;">
+          <div class="sectionLbl">Défis (<span id="challengeDoneCount">0</span>/50)</div>
+          <div class="challengeList" id="challengeList"></div>
         </div>
       </div>
 
@@ -495,6 +542,19 @@
       </div>
     </div>
   </div>
+
+  <div class="overlay hidden" id="cheatModal">
+    <div class="panel" style="max-width:300px;">
+      <div class="eyebrow" style="color:var(--gold);">Accès spécial</div>
+      <h1 style="font-size:19px;">Mot de passe</h1>
+      <p class="desc">Un accès caché… tape le mot de passe pour tout débloquer.</p>
+      <input type="text" id="cheatInput" class="cheatInput" placeholder="Mot de passe" autocomplete="off" autocapitalize="off" spellcheck="false">
+      <div style="display:flex; gap:10px; margin-top:14px;">
+        <button class="btn" id="cheatCancelBtn" style="background:#ffffff10; color:var(--ink); box-shadow:none;">Annuler</button>
+        <button class="btn" id="cheatConfirmBtn" style="background:linear-gradient(135deg,var(--gold),#c79a1a);">Valider</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -517,10 +577,12 @@ const MAX_POWERUPS = 3;
 
 // Formes du serpent : purement géométriques, indépendantes de l'univers/thème
 const SHAPES = [
-  {key:'sphere',  name:'Sphère',  cost:0},
-  {key:'cube',    name:'Cube',    cost:10},
-  {key:'diamond', name:'Losange', cost:20},
-  {key:'prism',   name:'Prisme',  cost:30},
+  {key:'sphere',   name:'Sphère',   cost:0},
+  {key:'cube',     name:'Cube',     cost:10},
+  {key:'diamond',  name:'Losange',  cost:20},
+  {key:'prism',    name:'Prisme',   cost:30},
+  {key:'pyramide', name:'Pyramide', cost:40},
+  {key:'tetra',    name:'Tétra',    cost:50},
 ];
 let selectedShape = 0;
 
@@ -552,12 +614,28 @@ const UNIVERSES = [
     tints:['#12142a','#ff2ecb','#12142a','#2ad9ff','#12142a','#ff2ecb'], edge:0xff2ecb,
     wallShape:'circuit', wallColor:0x0a0c1a, wallEmissive:0xff2ecb,
     snakeHead:0xffe0f7, snakeGlow:0xff2ecb, snakeTail:0x2ad9ff},
+  {key:'neon', name:'Néon', cost:70,
+    tints:['#0a0a12','#39ff88','#0a0a12','#ff3fa4','#0a0a12','#39ff88'], edge:0x39ff88,
+    wallShape:'circuit', wallColor:0x0a0a12, wallEmissive:0xff3fa4,
+    snakeHead:0xe0fff0, snakeGlow:0x39ff88, snakeTail:0xff3fa4},
+  {key:'desert', name:'Désert', cost:80,
+    tints:['#d9a35c','#8a5a2a','#e8c088','#6b3f18','#d9a35c','#e8c088'], edge:0xe8c088,
+    wallShape:'tree', wallColor:0x8a5a2a, wallEmissive:0xe8c088,
+    snakeHead:0xffe9c2, snakeGlow:0xe8c088, snakeTail:0x8a5a2a},
+  {key:'toxique', name:'Toxique', cost:90,
+    tints:['#8cff3c','#3a1a5c','#c2ff6b','#2a0f3c','#8cff3c','#c2ff6b'], edge:0x8cff3c,
+    wallShape:'lava', wallColor:0x2a0f3c, wallEmissive:0x8cff3c,
+    snakeHead:0xe6ffb3, snakeGlow:0x8cff3c, snakeTail:0x6a1fb3},
+  {key:'royal', name:'Royal', cost:100,
+    tints:['#5b2a8c','#ffd700','#7c3aed','#3a1a5c','#5b2a8c','#7c3aed'], edge:0xffd700,
+    wallShape:'ice', wallColor:0x3a1a5c, wallEmissive:0xffd700,
+    snakeHead:0xf0d9ff, snakeGlow:0xffd700, snakeTail:0x5b2a8c},
 ];
 let selectedCubeSkin = 0;
 
-// ---- Sauvegarde (pièces + déblocages). Fonctionne une fois le jeu hébergé sur ton propre site
-// (GitHub Pages) — dans un aperçu Claude sandboxé, le stockage peut être indisponible,
-// auquel cas le jeu continue simplement en mémoire pour la session en cours.
+// ---- Sauvegarde (pièces + déblocages + stats + défis). Fonctionne une fois le jeu hébergé
+// sur ton propre site (GitHub Pages) — dans un aperçu Claude sandboxé, le stockage peut être
+// indisponible, auquel cas le jeu continue simplement en mémoire pour la session en cours.
 const SAVE_KEY = 'cubesnake_save_v1';
 const COIN_VALUE = 1;      // pièces gagnées par boost/ralentisseur ramassé
 const COIN_BONUS_SCORE = 5; // points bonus, en plus du score normal
@@ -569,12 +647,67 @@ function loadSave(){
 }
 function saveGame(){
   try{
-    localStorage.setItem(SAVE_KEY, JSON.stringify({coins, unlockedUniverses, unlockedShapes, best}));
+    localStorage.setItem(SAVE_KEY, JSON.stringify({
+      coins, unlockedUniverses, unlockedShapes, best, stats, completedChallenges
+    }));
   } catch(e){ /* stockage indisponible : on reste en mémoire pour cette session */ }
 }
 let coins = 0;
 let unlockedUniverses = ['cosmos'];
 let unlockedShapes = ['sphere'];
+let stats = {
+  gamesPlayed: 0,
+  totalFood: 0,
+  totalCoinsEarned: 0,
+  totalBoosts: 0,
+  totalSlows: 0,
+  totalJumps: 0,
+};
+let completedChallenges = [];
+
+// ---- 50 défis, générés par groupes pour rester cohérents et faciles à faire évoluer.
+const CHALLENGE_DEFS = [];
+function addChallengeGroup(prefix, labelTpl, thresholds, statKey, rewardFn){
+  thresholds.forEach((t,i)=>{
+    CHALLENGE_DEFS.push({id:prefix+'_'+t, label:labelTpl.replace('{n}', t), statKey, threshold:t, reward:rewardFn(i)});
+  });
+}
+addChallengeGroup('score', 'Atteindre un score de {n}',            [50,100,150,250,400,600,900,1300], 'bestScoreEver',        i=>3+i*3);
+addChallengeGroup('food',  'Manger {n} pommes au total',            [10,25,50,100,200,400,700,1000],   'totalFood',            i=>3+i*3);
+addChallengeGroup('coins', 'Récolter {n} pièces au total (à vie)',  [10,25,50,100,200,350,500,750],    'totalCoinsEarned',     i=>4+i*4);
+addChallengeGroup('games', 'Jouer {n} parties',                     [1,3,5,10,20,35,50,75],            'gamesPlayed',          i=>2+i*2);
+addChallengeGroup('boost', 'Ramasser {n} boosts au total',          [5,15,30,50],                      'totalBoosts',          i=>3+i*4);
+addChallengeGroup('slow',  'Ramasser {n} ralentisseurs au total',   [5,15,30,50],                      'totalSlows',           i=>3+i*4);
+addChallengeGroup('jump',  'Utiliser le saut {n} fois au total',    [1,5,15,30],                       'totalJumps',           i=>3+i*4);
+addChallengeGroup('uni',   'Débloquer {n} univers',                 [2,4,6],                           'unlockedUniverseCount',i=>12+i*14);
+addChallengeGroup('shape', 'Débloquer {n} formes',                  [2,3,4],                           'unlockedShapeCount',   i=>12+i*14);
+
+function statValue(key){
+  if (key === 'bestScoreEver') return best;
+  if (key === 'unlockedUniverseCount') return unlockedUniverses.length;
+  if (key === 'unlockedShapeCount') return unlockedShapes.length;
+  return stats[key] || 0;
+}
+function checkChallenges(){
+  let changed = false;
+  CHALLENGE_DEFS.forEach(c=>{
+    if (completedChallenges.includes(c.id)) return;
+    if (statValue(c.statKey) >= c.threshold){
+      completedChallenges.push(c.id);
+      coins += c.reward;
+      changed = true;
+      showToast('Défi complété : +'+c.reward+' 🪙');
+    }
+  });
+  if (changed){
+    saveGame();
+    updateHUD();
+    if (typeof renderChallenges === 'function') renderChallenges();
+    if (typeof renderStats === 'function') renderStats();
+    if (typeof renderUniGrid === 'function') renderUniGrid();
+    if (typeof renderShapeGrid === 'function') renderShapeGrid();
+  }
+}
 
 // ---- Niveaux : chaque niveau change radicalement la donne, pas juste la taille du cube ----
 const TIER_BIAS = {
@@ -655,13 +788,18 @@ function sfxJump(){ sweep(500,780,0.11,'sine',0.16); sweep(780,420,0.14,'sine',0
 function sfxGameOver(){ beep(392,0.18,'square',0.15,0); beep(329.6,0.18,'square',0.15,0.16); beep(261.6,0.34,'square',0.17,0.32); }
 function sfxWallSpawn(){ beep(180,0.08,'square',0.13,0); beep(180,0.08,'square',0.13,0.13); }
 
-/* ---------- Musique de fond en boucle (entraînante, générée, aucun fichier) ---------- */
-const MUSIC_BPM = 132;
+/* ---------- Musique de fond (générée, aucun fichier) — ne joue que pendant une partie ---------- */
+const MUSIC_BPM = 128;
 const MUSIC_STEP_DUR = 60 / MUSIC_BPM / 2; // croches
-const MUSIC_BASS = [130.81,130.81,164.81,130.81, 146.83,146.83,196.00,164.81,
-                     130.81,130.81,174.61,130.81, 164.81,164.81,196.00,146.83];
-const MUSIC_LEAD = [523.25,659.25,783.99,659.25, 587.33,698.46,880.00,698.46,
-                     523.25,659.25,698.46,880.00, 659.25,783.99,880.00,987.77];
+// Deux motifs (A/B) qui alternent toutes les 2 boucles pour éviter l'effet "loop qui tourne en rond"
+const MUSIC_BASS_A = [130.81,130.81,164.81,130.81, 146.83,146.83,196.00,164.81,
+                       130.81,130.81,174.61,130.81, 164.81,164.81,196.00,146.83];
+const MUSIC_LEAD_A = [523.25,659.25,783.99,659.25, 587.33,698.46,880.00,698.46,
+                       523.25,659.25,698.46,880.00, 659.25,783.99,880.00,987.77];
+const MUSIC_BASS_B = [146.83,146.83,196.00,146.83, 174.61,174.61,220.00,196.00,
+                       130.81,130.81,164.81,146.83, 174.61,196.00,220.00,174.61];
+const MUSIC_LEAD_B = [587.33,698.46,880.00,698.46, 659.25,783.99,987.77,783.99,
+                       523.25,659.25,783.99,880.00, 698.46,880.00,1046.50,987.77];
 let musicStep = 0;
 let musicNextStepTime = 0;
 function playMusicNote(freq, time, dur, type, vol){
@@ -681,20 +819,36 @@ function playKick(time){
   osc.type = 'sine';
   osc.frequency.setValueAtTime(150, time);
   osc.frequency.exponentialRampToValueAtTime(40, time+0.12);
-  gain.gain.setValueAtTime(0.22, time);
+  gain.gain.setValueAtTime(0.2, time);
   gain.gain.exponentialRampToValueAtTime(0.0001, time+0.14);
   osc.connect(gain).connect(musicGain);
   osc.start(time); osc.stop(time+0.16);
 }
+function playHat(time, vol){
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = 'square';
+  osc.frequency.setValueAtTime(5200, time);
+  gain.gain.setValueAtTime(vol, time);
+  gain.gain.exponentialRampToValueAtTime(0.0001, time+0.035);
+  osc.connect(gain).connect(musicGain);
+  osc.start(time); osc.stop(time+0.04);
+}
 function scheduleMusicStep(time){
   const i = musicStep % 16;
-  playMusicNote(MUSIC_BASS[i], time, MUSIC_STEP_DUR*0.9, 'triangle', 0.09);
-  if (musicStep % 2 === 0) playMusicNote(MUSIC_LEAD[i], time, MUSIC_STEP_DUR*0.55, 'square', 0.045);
+  const useB = Math.floor(musicStep/16) % 4 >= 2;
+  const bassArr = useB ? MUSIC_BASS_B : MUSIC_BASS_A;
+  const leadArr = useB ? MUSIC_LEAD_B : MUSIC_LEAD_A;
+  playMusicNote(bassArr[i], time, MUSIC_STEP_DUR*0.9, 'triangle', 0.08);
+  if (musicStep % 2 === 0) playMusicNote(leadArr[i], time, MUSIC_STEP_DUR*0.55, 'triangle', 0.04);
   if (i % 8 === 0) playKick(time);
+  if (i % 4 === 2) playHat(time, 0.02);
+  if (i % 2 === 1) playHat(time, 0.008);
   musicStep++;
 }
 function musicScheduler(){
   if (!soundOn || !audioCtx || !musicGain) return;
+  if (!running || gameOver || paused) return; // musique uniquement pendant une partie active
   if (musicNextStepTime < audioCtx.currentTime) musicNextStepTime = audioCtx.currentTime;
   while (musicNextStepTime < audioCtx.currentTime + 0.15){
     scheduleMusicStep(musicNextStepTime);
@@ -976,6 +1130,8 @@ let best = 0;
     unlockedUniverses = Array.isArray(saved.unlockedUniverses) ? saved.unlockedUniverses : ['cosmos'];
     unlockedShapes = Array.isArray(saved.unlockedShapes) ? saved.unlockedShapes : ['sphere'];
     if (typeof saved.best === 'number') best = saved.best;
+    if (saved.stats && typeof saved.stats === 'object') stats = Object.assign(stats, saved.stats);
+    if (Array.isArray(saved.completedChallenges)) completedChallenges = saved.completedChallenges;
   }
 }
 let jokersLeft = 3;
@@ -1227,7 +1383,7 @@ function tick(){
     triggerGameOver();
     return;
   }
-  if (jumped){ triggerJumpFX(blocked); sfxJump(); }
+  if (jumped){ triggerJumpFX(blocked); sfxJump(); stats.totalJumps++; checkChallenges(); }
 
   let fx = null;
   for(let i=boosters.length-1;i>=0;i--){
@@ -1239,14 +1395,16 @@ function tick(){
   if (fx === 'boost'){
     speedModifier = boostModifier(); speedModifierEnd = performance.now()+4500;
     coins += COIN_VALUE; score += COIN_BONUS_SCORE;
+    stats.totalCoinsEarned += COIN_VALUE; stats.totalBoosts++;
     showToast('Boost ! +'+COIN_VALUE+' pièce, +'+COIN_BONUS_SCORE+' pts');
-    fillPowerups(); sfxBoost(); updateHUD();
+    fillPowerups(); sfxBoost(); updateHUD(); checkChallenges();
   }
   if (fx === 'slow'){
     speedModifier = slowModifier(); speedModifierEnd = performance.now()+4500;
     coins += COIN_VALUE; score += COIN_BONUS_SCORE;
+    stats.totalCoinsEarned += COIN_VALUE; stats.totalSlows++;
     showToast('Ralenti… +'+COIN_VALUE+' pièce, +'+COIN_BONUS_SCORE+' pts');
-    fillPowerups(); sfxSlow(); updateHUD();
+    fillPowerups(); sfxSlow(); updateHUD(); checkChallenges();
   }
 
   const oldBody = body;
@@ -1254,11 +1412,13 @@ function tick(){
   if (ateFood){
     newBody = [newHead, ...oldBody];
     score += 10;
+    stats.totalFood++;
     baseTickInterval = Math.max(MIN_INTERVAL, CURRENT_LEVEL.baseInterval - score*CURRENT_LEVEL.speedup);
     triggerEatFX(food.pos, food.normal);
     spawnFood();
     updateHUD();
     sfxEat();
+    checkChallenges();
   } else {
     newBody = [newHead, ...oldBody.slice(0, -1)];
   }
@@ -1278,6 +1438,7 @@ function triggerGameOver(){
   sfxGameOver();
   if (score > best){ best = score; showNewBest(true); } else { showNewBest(false); }
   saveGame();
+  checkChallenges();
   document.getElementById('finalScore').textContent = score;
   document.getElementById('finalBest').textContent = best;
   document.getElementById('gameOverScreen').classList.remove('hidden');
@@ -1327,18 +1488,24 @@ const BODY_GEO = {
   cube: new THREE.BoxGeometry(1,1,1),
   diamond: new THREE.OctahedronGeometry(1,0),
   prism: new THREE.CylinderGeometry(0.72,0.72,1,6).rotateX(Math.PI/2),
+  pyramide: new THREE.ConeGeometry(0.78,1,4),
+  tetra: new THREE.TetrahedronGeometry(0.92,0),
 };
 const HEAD_GEO = {
   sphere: new THREE.SphereGeometry(1, 20, 16),
   cube: new THREE.BoxGeometry(1.5,1.5,1.5),
   diamond: new THREE.OctahedronGeometry(1,0),
   prism: new THREE.CylinderGeometry(1,1,1.35,6).rotateX(Math.PI/2),
+  pyramide: new THREE.ConeGeometry(1,1.4,4),
+  tetra: new THREE.TetrahedronGeometry(1.15,0),
 };
 const NOSE_GEO = {
   sphere: new THREE.ConeGeometry(1,1,12),
   cube: new THREE.BoxGeometry(0.7,0.7,0.7),
   diamond: new THREE.OctahedronGeometry(1,0),
   prism: new THREE.ConeGeometry(0.55,1,6),
+  pyramide: new THREE.ConeGeometry(0.5,0.9,4),
+  tetra: new THREE.TetrahedronGeometry(0.55,0),
 };
 
 const bodyMeshes = [];
@@ -1350,21 +1517,27 @@ function clearBodyPool(){
   bodyMeshes.forEach(m=>{ m.material.dispose(); bodyGroup.remove(m); });
   bodyMeshes.length = 0;
 }
-function bodyShapeScale(shape){
+const SHAPE_SCALE = {
   // z = axe d'avancement (le corps s'étire dans cette direction pour chevaucher
   // le segment suivant et donner l'impression d'un corps continu, pas de cubes séparés)
-  if (shape==='sphere')  return {x:1.0,  y:1.0,  z:1.45};
-  if (shape==='cube')    return {x:1.04, y:0.92, z:1.28};
-  if (shape==='diamond') return {x:1.0,  y:1.0,  z:1.4};
-  return {x:1.06, y:1.06, z:1.22}; // prisme : hexagone étiré dans le sens de la marche
-}
+  sphere:   {x:1.0,  y:1.0,  z:1.45},
+  cube:     {x:1.04, y:0.92, z:1.28},
+  diamond:  {x:1.0,  y:1.0,  z:1.4},
+  prism:    {x:1.06, y:1.06, z:1.22},
+  pyramide: {x:1.05, y:1.0,  z:1.3},
+  tetra:    {x:1.05, y:1.0,  z:1.3},
+};
+function bodyShapeScale(shape){ return SHAPE_SCALE[shape] || SHAPE_SCALE.sphere; }
 // Matière propre à chaque forme, pour un rendu plus soigné (verre, pierre, métal…)
-function bodyShapeMaterialProps(shape){
-  if (shape==='sphere')  return {roughness:0.3,  metalness:0.15};
-  if (shape==='cube')    return {roughness:0.6,  metalness:0.2};
-  if (shape==='diamond') return {roughness:0.08, metalness:0.05, transparent:true, opacity:0.94};
-  return {roughness:0.25, metalness:0.6}; // prisme : effet cristal métallique
-}
+const SHAPE_MATERIAL = {
+  sphere:   {roughness:0.3,  metalness:0.15},
+  cube:     {roughness:0.6,  metalness:0.2},
+  diamond:  {roughness:0.08, metalness:0.05, transparent:true, opacity:0.94},
+  prism:    {roughness:0.25, metalness:0.6},
+  pyramide: {roughness:0.45, metalness:0.3},
+  tetra:    {roughness:0.12, metalness:0.08, transparent:true, opacity:0.92},
+};
+function bodyShapeMaterialProps(shape){ return SHAPE_MATERIAL[shape] || SHAPE_MATERIAL.sphere; }
 function ensureBodyMeshCount(n){
   const uni = UNIVERSES[selectedCubeSkin];
   const shape = SHAPES[selectedShape].key;
@@ -1422,24 +1595,22 @@ function applyShape(idx){
   clearBodyPool();
 }
 
+const NOSE_LAYOUT = {
+  sphere:   {sx:0.55, sy:0.85, sz:0.55, pz:0.95},
+  cube:     {sx:0.5,  sy:0.5,  sz:0.5,  pz:0.85},
+  diamond:  {sx:0.48, sy:0.48, sz:0.48, pz:0.95},
+  prism:    {sx:0.42, sy:0.7,  sz:0.42, pz:1.0},
+  pyramide: {sx:0.5,  sy:0.5,  sz:0.5,  pz:0.9},
+  tetra:    {sx:0.46, sy:0.46, sz:0.46, pz:0.95},
+};
 function layoutHead(){
   const shape = SHAPES[selectedShape].key;
   const boxFactor = shape==='cube' ? 0.82 : 1;
   headBoxFactor = boxFactor;
   headMesh.scale.setScalar(HEAD_RADIUS * boxFactor);
-  if (shape==='sphere'){
-    noseMesh.scale.set(HEAD_RADIUS*0.55, HEAD_RADIUS*0.85, HEAD_RADIUS*0.55);
-    noseMesh.position.set(0,0,HEAD_RADIUS*0.95);
-  } else if (shape==='cube'){
-    noseMesh.scale.setScalar(HEAD_RADIUS*0.5);
-    noseMesh.position.set(0,0,HEAD_RADIUS*0.85);
-  } else if (shape==='diamond'){
-    noseMesh.scale.setScalar(HEAD_RADIUS*0.48);
-    noseMesh.position.set(0,0,HEAD_RADIUS*0.95);
-  } else {
-    noseMesh.scale.set(HEAD_RADIUS*0.42, HEAD_RADIUS*0.7, HEAD_RADIUS*0.42);
-    noseMesh.position.set(0,0,HEAD_RADIUS*1.0);
-  }
+  const nl = NOSE_LAYOUT[shape] || NOSE_LAYOUT.sphere;
+  noseMesh.scale.set(HEAD_RADIUS*nl.sx, HEAD_RADIUS*nl.sy, HEAD_RADIUS*nl.sz);
+  noseMesh.position.set(0,0,HEAD_RADIUS*nl.pz);
   eyeL.scale.setScalar(HEAD_RADIUS*0.16);
   eyeR.scale.setScalar(HEAD_RADIUS*0.16);
   eyeL.position.set(-HEAD_RADIUS*0.42, HEAD_RADIUS*0.25, HEAD_RADIUS*0.72);
@@ -1791,6 +1962,59 @@ document.getElementById('quitConfirmBtn').addEventListener('touchend', e=>{e.pre
 document.getElementById('muteBtn').addEventListener('click', toggleSound);
 document.getElementById('muteBtn').addEventListener('touchend', e=>{e.preventDefault(); toggleSound();}, {passive:false});
 
+/* ---------- Easter egg : triple-tap sur le titre = mot de passe pour tout débloquer ---------- */
+let titleTapCount = 0;
+let titleTapTimer = null;
+function onTitleTap(){
+  titleTapCount++;
+  clearTimeout(titleTapTimer);
+  titleTapTimer = setTimeout(()=>{ titleTapCount = 0; }, 900);
+  if (titleTapCount >= 3){
+    titleTapCount = 0;
+    openCheatModal();
+  }
+}
+const titleEl = document.getElementById('titleTap');
+titleEl.style.cursor = 'pointer';
+titleEl.addEventListener('click', onTitleTap);
+titleEl.addEventListener('touchend', e=>{e.preventDefault(); onTitleTap();}, {passive:false});
+
+function openCheatModal(){
+  const modal = document.getElementById('cheatModal');
+  const input = document.getElementById('cheatInput');
+  input.value = '';
+  modal.classList.remove('hidden');
+  setTimeout(()=>input.focus(), 50);
+}
+function closeCheatModal(){
+  document.getElementById('cheatModal').classList.add('hidden');
+}
+function submitCheat(){
+  const input = document.getElementById('cheatInput');
+  const val = input.value.trim().toLowerCase();
+  if (val === 'antoine'){
+    unlockedUniverses = UNIVERSES.map(u=>u.key);
+    unlockedShapes = SHAPES.map(s=>s.key);
+    saveGame();
+    renderUniGrid();
+    renderShapeGrid();
+    updateHUD();
+    showToast('Tout débloqué !');
+    closeCheatModal();
+  } else {
+    input.classList.remove('shake');
+    void input.offsetWidth;
+    input.classList.add('shake');
+    input.value = '';
+    showToast('Mot de passe incorrect');
+  }
+}
+document.getElementById('cheatCancelBtn').addEventListener('click', closeCheatModal);
+document.getElementById('cheatCancelBtn').addEventListener('touchend', e=>{e.preventDefault(); closeCheatModal();}, {passive:false});
+document.getElementById('cheatConfirmBtn').addEventListener('click', submitCheat);
+document.getElementById('cheatConfirmBtn').addEventListener('touchend', e=>{e.preventDefault(); submitCheat();}, {passive:false});
+document.getElementById('cheatInput').addEventListener('keydown', e=>{ if (e.key==='Enter') submitCheat(); });
+
 /* ============================================================
    MENU WIRING
 ============================================================ */
@@ -1881,6 +2105,46 @@ function selectUniverse(idx){
   refreshShapeIconColors();
   updateHUD();
 }
+
+function renderStats(){
+  const el = document.getElementById('statsGrid');
+  if (!el) return;
+  const items = [
+    ['Parties jouées', stats.gamesPlayed],
+    ['Meilleur score', best],
+    ['Pommes mangées', stats.totalFood],
+    ['Pièces (à vie)', stats.totalCoinsEarned],
+    ['Boosts pris', stats.totalBoosts],
+    ['Ralentisseurs', stats.totalSlows],
+    ['Sauts utilisés', stats.totalJumps],
+    ['Univers', unlockedUniverses.length+'/'+UNIVERSES.length],
+    ['Formes', unlockedShapes.length+'/'+SHAPES.length],
+  ];
+  el.innerHTML = items.map(([l,v])=>
+    '<div class="statItem"><div class="statVal">'+v+'</div><div class="statLbl">'+l+'</div></div>'
+  ).join('');
+}
+function renderChallenges(){
+  const listEl = document.getElementById('challengeList');
+  if (!listEl) return;
+  listEl.innerHTML = '';
+  let doneCount = 0;
+  CHALLENGE_DEFS.forEach(c=>{
+    const done = completedChallenges.includes(c.id);
+    if (done) doneCount++;
+    const row = document.createElement('div');
+    row.className = 'challRow' + (done ? ' done' : '');
+    row.innerHTML =
+      '<div class="challCheck">'+(done?'✓':'')+'</div>'+
+      '<div class="challMain"><div class="challLabel">'+c.label+'</div></div>'+
+      '<div class="challReward">+'+c.reward+' 🪙</div>';
+    listEl.appendChild(row);
+  });
+  const countEl = document.getElementById('challengeDoneCount');
+  if (countEl) countEl.textContent = doneCount;
+}
+renderStats();
+renderChallenges();
 
 /* ---------- Panneau Personnalisable (réglages libres de la partie) ---------- */
 function bindRange(id, valId, fmt){
@@ -2006,6 +2270,7 @@ selectMode(selectedMode);
 function showTab(name){
   document.querySelectorAll('.tabBtn').forEach(b=> b.classList.toggle('active', b.dataset.tab===name));
   document.querySelectorAll('.tabPanel').forEach(p=> p.classList.toggle('hidden', p.dataset.panel!==name));
+  if (name === 'challenges'){ renderStats(); renderChallenges(); }
 }
 document.querySelectorAll('.tabBtn').forEach(btn=>{
   btn.addEventListener('click', ()=>showTab(btn.dataset.tab));
@@ -2021,6 +2286,11 @@ function startGame(){
   applyLevel(level);
   resetGame();
   running = true;
+  musicStep = 0;
+  musicNextStepTime = 0;
+  stats.gamesPlayed++;
+  saveGame();
+  checkChallenges();
   startScreen.classList.add('hidden');
   gameOverScreen.classList.add('hidden');
   lastTime = performance.now();
