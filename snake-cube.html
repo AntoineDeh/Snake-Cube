@@ -140,6 +140,14 @@
     display:flex; align-items:center; justify-content:center; font-size:15px; line-height:1;
   }
   #muteBtn:active{transform:scale(.9);}
+  #coinBadge{
+    position:absolute; z-index:10; pointer-events:none;
+    top:calc(env(safe-area-inset-top,0px) + 66px); right:calc(env(safe-area-inset-right,0px) + 14px);
+    background:var(--panel); border:1px solid var(--panel-line); border-radius:10px;
+    padding:6px 12px; display:flex; align-items:center; gap:5px;
+    font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:13px; color:var(--gold);
+    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  }
 
   /* ---------- Overlays ---------- */
   .overlay{
@@ -201,6 +209,7 @@
   .shapeIcon.diamond{border-radius:5px; transform:rotate(45deg); width:28px; height:28px; margin:4px auto;}
   .shapeIcon.prism{clip-path:polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%); border-radius:0;}
   .shapeIcon.selected{border-color:#fff !important; box-shadow:0 0 14px currentColor; transform:scale(1.12) rotate(var(--r,0deg));}
+  .shapeIcon.locked{opacity:.32; filter:grayscale(.6);}
   .shapeIcon.diamond.selected{transform:rotate(45deg) scale(1.15);}
   .uniGrid{display:grid; grid-template-columns:repeat(3,1fr); gap:9px; max-width:280px; margin:0 auto;}
   .uniCard{
@@ -212,6 +221,7 @@
   .uniCard .uniName{font-size:9px; color:var(--ink-dim); letter-spacing:.02em; text-align:center;}
   .uniCard.selected{border-color:#fff; box-shadow:0 0 0 3px #ffffff22, 0 0 14px currentColor;}
   .uniCard.selected .uniName{color:var(--ink);}
+  .uniCard.locked{opacity:.4; filter:grayscale(.5);}
 
   .tabs{display:flex; gap:5px; margin-bottom:16px; background:#00000033; border-radius:11px; padding:4px;}
   .tabBtn{
@@ -322,6 +332,7 @@
     <svg viewBox="0 0 24 24" fill="none" width="16" height="16"><path d="M4 11.5L12 4L20 11.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M6.5 10V19.5H17.5V10" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
   </button>
   <button id="muteBtn" aria-label="Activer/couper le son">🔊</button>
+  <div id="coinBadge">🪙 <span id="coinVal">0</span></div>
 
   <div id="controls">
     <button class="turnBtn" id="btnLeft" aria-label="Tourner à gauche">
@@ -432,6 +443,10 @@
             <div><b>Ralentisseur (rouge)</b><p>Pénible quand le serpent est court, mais devient un vrai coup de pouce une fois qu'il est grand et dur à manœuvrer.</p></div>
           </div>
           <div class="ruleItem">
+            <div class="ruleIcon" style="color:var(--gold);">🪙</div>
+            <div><b>Pièces</b><p>Chaque boost ou ralentisseur ramassé donne aussi une pièce et des points bonus. Les pièces se dépensent dans l'onglet Apparence pour débloquer d'autres univers et formes de serpent, et restent d'une partie à l'autre.</p></div>
+          </div>
+          <div class="ruleItem">
             <div class="ruleIcon" style="color:#ffd23c;">⌒</div>
             <div><b>Saut (jokers)</b><p>Le bouton doré entre les flèches fait sauter le serpent par-dessus son corps ou un mur. Le nombre de jokers dépend du niveau.</p></div>
           </div>
@@ -502,10 +517,10 @@ const MAX_POWERUPS = 3;
 
 // Formes du serpent : purement géométriques, indépendantes de l'univers/thème
 const SHAPES = [
-  {key:'sphere',  name:'Sphère'},
-  {key:'cube',    name:'Cube'},
-  {key:'diamond', name:'Losange'},
-  {key:'prism',   name:'Prisme'},
+  {key:'sphere',  name:'Sphère',  cost:0},
+  {key:'cube',    name:'Cube',    cost:10},
+  {key:'diamond', name:'Losange', cost:20},
+  {key:'prism',   name:'Prisme',  cost:30},
 ];
 let selectedShape = 0;
 
@@ -513,32 +528,53 @@ let selectedShape = 0;
 // La nourriture/boost/ralentisseur restent volontairement à couleur fixe (jaune/bleu/rouge) dans tous les univers,
 // pour rester lisibles d'un coup d'œil quel que soit le décor.
 const UNIVERSES = [
-  {key:'cosmos', name:'Cosmos',
+  {key:'cosmos', name:'Cosmos', cost:0,
     tints:['#39e6c3','#7c6cff','#39e6c3','#ff9d5c','#7c6cff','#39e6c3'], edge:0x39e6c3,
     wallShape:'rock', wallColor:0x2a2f4a, wallEmissive:0x39e6c3,
     snakeHead:0x8ffff0, snakeGlow:0x39e6c3, snakeTail:0x7c6cff},
-  {key:'terre', name:'Terre',
+  {key:'terre', name:'Terre', cost:15,
     tints:['#8a6a3f','#4c7a3a','#6b8f4e','#5a3d21','#7a5a34','#4c7a3a'], edge:0x8fbf5a,
     wallShape:'tree', wallColor:0x6b4226, wallEmissive:0x7bbf5a,
     snakeHead:0xe8f7c8, snakeGlow:0x8fbf5a, snakeTail:0x4c7a3a},
-  {key:'ocean', name:'Océan',
+  {key:'ocean', name:'Océan', cost:25,
     tints:['#1f6e9e','#0e3a5c','#3ac6e0','#0a2740','#1f6e9e','#3ac6e0'], edge:0x3ac6e0,
     wallShape:'coral', wallColor:0x1f6e78, wallEmissive:0xff8fb0,
     snakeHead:0xdff6ff, snakeGlow:0x3ac6e0, snakeTail:0x1f6e9e},
-  {key:'volcan', name:'Volcan',
+  {key:'volcan', name:'Volcan', cost:35,
     tints:['#ff5c2a','#2a0f0a','#c73a1e','#1a0806','#ff5c2a','#c73a1e'], edge:0xff5c2a,
     wallShape:'lava', wallColor:0x2a1410, wallEmissive:0xff5c2a,
     snakeHead:0xffcf9c, snakeGlow:0xff5c2a, snakeTail:0x8a2a12},
-  {key:'glace', name:'Glace',
+  {key:'glace', name:'Glace', cost:45,
     tints:['#cdeeff','#8fe3ff','#eaf9ff','#8fe3ff','#cdeeff','#eaf9ff'], edge:0x8fe3ff,
     wallShape:'ice', wallColor:0xcdeeff, wallEmissive:0x8fe3ff,
     snakeHead:0xf0fbff, snakeGlow:0x8fe3ff, snakeTail:0x3a7fa8},
-  {key:'cyber', name:'Cyber',
+  {key:'cyber', name:'Cyber', cost:60,
     tints:['#12142a','#ff2ecb','#12142a','#2ad9ff','#12142a','#ff2ecb'], edge:0xff2ecb,
     wallShape:'circuit', wallColor:0x0a0c1a, wallEmissive:0xff2ecb,
     snakeHead:0xffe0f7, snakeGlow:0xff2ecb, snakeTail:0x2ad9ff},
 ];
 let selectedCubeSkin = 0;
+
+// ---- Sauvegarde (pièces + déblocages). Fonctionne une fois le jeu hébergé sur ton propre site
+// (GitHub Pages) — dans un aperçu Claude sandboxé, le stockage peut être indisponible,
+// auquel cas le jeu continue simplement en mémoire pour la session en cours.
+const SAVE_KEY = 'cubesnake_save_v1';
+const COIN_VALUE = 1;      // pièces gagnées par boost/ralentisseur ramassé
+const COIN_BONUS_SCORE = 5; // points bonus, en plus du score normal
+function loadSave(){
+  try{
+    const raw = localStorage.getItem(SAVE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch(e){ return null; }
+}
+function saveGame(){
+  try{
+    localStorage.setItem(SAVE_KEY, JSON.stringify({coins, unlockedUniverses, unlockedShapes, best}));
+  } catch(e){ /* stockage indisponible : on reste en mémoire pour cette session */ }
+}
+let coins = 0;
+let unlockedUniverses = ['cosmos'];
+let unlockedShapes = ['sphere'];
 
 // ---- Niveaux : chaque niveau change radicalement la donne, pas juste la taille du cube ----
 const TIER_BIAS = {
@@ -933,6 +969,15 @@ let walls = [];           // {pos, normal, permanent, start?, duration?}
 let nextPopWallTime = Infinity;
 let score = 0;
 let best = 0;
+{
+  const saved = loadSave();
+  if (saved){
+    coins = typeof saved.coins === 'number' ? saved.coins : 0;
+    unlockedUniverses = Array.isArray(saved.unlockedUniverses) ? saved.unlockedUniverses : ['cosmos'];
+    unlockedShapes = Array.isArray(saved.unlockedShapes) ? saved.unlockedShapes : ['sphere'];
+    if (typeof saved.best === 'number') best = saved.best;
+  }
+}
 let jokersLeft = 3;
 let pendingJump = false;
 let headJumpFlag = false;
@@ -1191,8 +1236,18 @@ function tick(){
   for(let i=slowdowns.length-1;i>=0;i--){
     if (slowdowns[i].pos.distanceToSquared(newHead.pos) < 1e-4){ slowdowns.splice(i,1); fx='slow'; }
   }
-  if (fx === 'boost'){ speedModifier = boostModifier(); speedModifierEnd = performance.now()+4500; showToast('Boost !'); fillPowerups(); sfxBoost(); }
-  if (fx === 'slow'){ speedModifier = slowModifier(); speedModifierEnd = performance.now()+4500; showToast('Ralenti…'); fillPowerups(); sfxSlow(); }
+  if (fx === 'boost'){
+    speedModifier = boostModifier(); speedModifierEnd = performance.now()+4500;
+    coins += COIN_VALUE; score += COIN_BONUS_SCORE;
+    showToast('Boost ! +'+COIN_VALUE+' pièce, +'+COIN_BONUS_SCORE+' pts');
+    fillPowerups(); sfxBoost(); updateHUD();
+  }
+  if (fx === 'slow'){
+    speedModifier = slowModifier(); speedModifierEnd = performance.now()+4500;
+    coins += COIN_VALUE; score += COIN_BONUS_SCORE;
+    showToast('Ralenti… +'+COIN_VALUE+' pièce, +'+COIN_BONUS_SCORE+' pts');
+    fillPowerups(); sfxSlow(); updateHUD();
+  }
 
   const oldBody = body;
   let newBody;
@@ -1222,6 +1277,7 @@ function triggerGameOver(){
   gameOver = true; running = false;
   sfxGameOver();
   if (score > best){ best = score; showNewBest(true); } else { showNewBest(false); }
+  saveGame();
   document.getElementById('finalScore').textContent = score;
   document.getElementById('finalBest').textContent = best;
   document.getElementById('gameOverScreen').classList.remove('hidden');
@@ -1232,6 +1288,7 @@ function showNewBest(isNew){ document.getElementById('newBestBadge').style.displ
 function updateHUD(){
   document.getElementById('scoreVal').textContent = score;
   document.getElementById('bestVal').textContent = best;
+  document.getElementById('coinVal').textContent = coins;
   const dots = document.querySelectorAll('#jokerDots .jd');
   dots.forEach((d,idx)=> d.classList.toggle('used', idx >= jokersLeft));
   document.getElementById('btnJump').classList.toggle('depleted', jokersLeft <= 0);
@@ -1738,22 +1795,27 @@ document.getElementById('muteBtn').addEventListener('touchend', e=>{e.preventDef
    MENU WIRING
 ============================================================ */
 const skinGridEl = document.getElementById('skinGrid');
-SHAPES.forEach((sh, idx)=>{
-  const wrap = document.createElement('div');
-  const icon = document.createElement('div');
-  icon.className = 'shapeIcon ' + sh.key + (idx===selectedShape ? ' selected' : '');
+function renderShapeGrid(){
+  skinGridEl.innerHTML = '';
   const accent = '#'+UNIVERSES[selectedCubeSkin].snakeGlow.toString(16).padStart(6,'0');
-  icon.style.color = accent;
-  icon.style.background = accent;
-  icon.dataset.idx = idx;
-  const label = document.createElement('div');
-  label.className = 'skinName';
-  label.textContent = sh.name;
-  icon.addEventListener('click', ()=>selectShape(idx));
-  icon.addEventListener('touchend', e=>{e.preventDefault(); selectShape(idx);}, {passive:false});
-  wrap.appendChild(icon); wrap.appendChild(label);
-  skinGridEl.appendChild(wrap);
-});
+  SHAPES.forEach((sh, idx)=>{
+    const locked = !unlockedShapes.includes(sh.key);
+    const wrap = document.createElement('div');
+    const icon = document.createElement('div');
+    icon.className = 'shapeIcon ' + sh.key + (idx===selectedShape ? ' selected' : '') + (locked ? ' locked' : '');
+    icon.style.color = accent;
+    icon.style.background = accent;
+    icon.dataset.idx = idx;
+    const label = document.createElement('div');
+    label.className = 'skinName';
+    label.textContent = locked ? ('🔒 '+sh.cost) : sh.name;
+    icon.addEventListener('click', ()=>selectShape(idx));
+    icon.addEventListener('touchend', e=>{e.preventDefault(); selectShape(idx);}, {passive:false});
+    wrap.appendChild(icon); wrap.appendChild(label);
+    skinGridEl.appendChild(wrap);
+  });
+}
+renderShapeGrid();
 function refreshShapeIconColors(){
   const accent = '#'+UNIVERSES[selectedCubeSkin].snakeGlow.toString(16).padStart(6,'0');
   document.querySelectorAll('.shapeIcon').forEach(el=>{
@@ -1762,35 +1824,62 @@ function refreshShapeIconColors(){
   });
 }
 function selectShape(idx){
+  const sh = SHAPES[idx];
+  if (!unlockedShapes.includes(sh.key)){
+    if (coins >= sh.cost){
+      coins -= sh.cost;
+      unlockedShapes.push(sh.key);
+      saveGame();
+      showToast('Forme débloquée : '+sh.name+' !');
+    } else {
+      showToast('Pas assez de pièces ('+coins+'/'+sh.cost+')');
+      return;
+    }
+  }
   applyShape(idx);
-  document.querySelectorAll('.shapeIcon').forEach(el=>{
-    el.classList.toggle('selected', Number(el.dataset.idx)===idx);
-  });
+  renderShapeGrid();
+  updateHUD();
 }
 
 const uniGridEl = document.getElementById('uniGrid');
-UNIVERSES.forEach((uni, idx)=>{
-  const card = document.createElement('div');
-  card.className = 'uniCard' + (idx===selectedCubeSkin ? ' selected' : '');
-  card.dataset.idx = idx;
-  card.style.color = uni.tints[0];
-  const sw = document.createElement('div');
-  sw.className = 'uniSwatch';
-  sw.style.background = 'linear-gradient(135deg,'+uni.tints[0]+','+uni.tints[1]+' 55%,'+uni.tints[3]+')';
-  const nm = document.createElement('div');
-  nm.className = 'uniName';
-  nm.textContent = uni.name;
-  card.appendChild(sw); card.appendChild(nm);
-  card.addEventListener('click', ()=>selectUniverse(idx));
-  card.addEventListener('touchend', e=>{e.preventDefault(); selectUniverse(idx);}, {passive:false});
-  uniGridEl.appendChild(card);
-});
-function selectUniverse(idx){
-  applyCubeSkin(idx);
-  document.querySelectorAll('.uniCard').forEach(el=>{
-    el.classList.toggle('selected', Number(el.dataset.idx)===idx);
+function renderUniGrid(){
+  uniGridEl.innerHTML = '';
+  UNIVERSES.forEach((uni, idx)=>{
+    const locked = !unlockedUniverses.includes(uni.key);
+    const card = document.createElement('div');
+    card.className = 'uniCard' + (idx===selectedCubeSkin ? ' selected' : '') + (locked ? ' locked' : '');
+    card.dataset.idx = idx;
+    card.style.color = uni.tints[0];
+    const sw = document.createElement('div');
+    sw.className = 'uniSwatch';
+    sw.style.background = 'linear-gradient(135deg,'+uni.tints[0]+','+uni.tints[1]+' 55%,'+uni.tints[3]+')';
+    const nm = document.createElement('div');
+    nm.className = 'uniName';
+    nm.textContent = locked ? ('🔒 '+uni.cost) : uni.name;
+    card.appendChild(sw); card.appendChild(nm);
+    card.addEventListener('click', ()=>selectUniverse(idx));
+    card.addEventListener('touchend', e=>{e.preventDefault(); selectUniverse(idx);}, {passive:false});
+    uniGridEl.appendChild(card);
   });
+}
+renderUniGrid();
+function selectUniverse(idx){
+  const uni = UNIVERSES[idx];
+  if (!unlockedUniverses.includes(uni.key)){
+    if (coins >= uni.cost){
+      coins -= uni.cost;
+      unlockedUniverses.push(uni.key);
+      saveGame();
+      showToast('Univers débloqué : '+uni.name+' !');
+    } else {
+      showToast('Pas assez de pièces ('+coins+'/'+uni.cost+')');
+      return;
+    }
+  }
+  applyCubeSkin(idx);
+  renderUniGrid();
   refreshShapeIconColors();
+  updateHUD();
 }
 
 /* ---------- Panneau Personnalisable (réglages libres de la partie) ---------- */
