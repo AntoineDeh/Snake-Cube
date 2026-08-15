@@ -225,21 +225,14 @@
   .tabPanel{animation: tabIn .3s ease both;}
   @keyframes tabIn{0%{opacity:0; transform:translateY(6px);} 100%{opacity:1; transform:translateY(0);}}
 
-  .levelList{display:flex; flex-direction:column; gap:7px; max-height:290px; overflow-y:auto; padding:2px 3px 2px 0; margin-bottom:8px;}
-  .levelRow{
-    display:flex; justify-content:space-between; align-items:center; gap:10px;
-    border:1px solid var(--panel-line); border-radius:11px; padding:9px 12px;
-    background:#ffffff06; cursor:pointer; text-align:left;
-    transition:border-color .15s ease, background .15s ease;
-  }
-  .levelRow.selected{border-color:var(--teal); background:#39e6c31f; box-shadow:0 0 14px #39e6c322;}
-  .levelRow .lvMain{display:flex; flex-direction:column; gap:2px; min-width:0;}
-  .levelRow .lvName{font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:12.5px; color:var(--ink); white-space:nowrap;}
-  .levelRow .lvTag{font-size:9px; color:var(--ink-dim); letter-spacing:.02em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
-  .levelRow .lvSize{font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:11px; color:var(--ink-dim); white-space:nowrap; flex:none;}
-  .levelHint{font-size:9.5px; color:var(--ink-dim); text-align:center; line-height:1.5;}
-
   .hidden{display:none !important;}
+  .diffBadge{
+    display:flex; justify-content:center; align-items:baseline; gap:6px;
+    border:1px solid var(--panel-line); border-radius:10px; padding:9px 12px; margin-bottom:12px;
+    background:#ffffff06; transition:border-color .2s ease; text-align:center;
+  }
+  .diffBadge span:first-child{font-size:9.5px; color:var(--ink-dim); letter-spacing:.02em;}
+  .diffBadge span:last-child{font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:13px;}
   .devPanel{margin-top:12px; padding-top:12px; border-top:1px solid var(--panel-line);}
   .devRow{margin-bottom:10px;}
   .devRow label{display:flex; justify-content:space-between; font-size:10px; color:var(--ink-dim); letter-spacing:.03em; margin-bottom:4px;}
@@ -288,7 +281,6 @@
     h1{font-size:20px;}
     .desc{margin-bottom:10px;}
     .section{margin-bottom:10px;}
-    .levelList{max-height:180px;}
   }
 </style>
 </head>
@@ -346,12 +338,14 @@
       </div>
 
       <div class="tabPanel" data-panel="play">
-        <p class="desc">Un organisme rampe sur les <b>6 faces</b> d'un cube en lévitation. Choisis ton niveau et lance l'observation.</p>
+        <p class="desc">Un organisme rampe sur les <b>6 faces</b> d'un cube en lévitation. Règle la partie à ta sauce et lance l'observation.</p>
         <div class="section">
-          <div class="sectionLbl">Niveau</div>
-          <div class="levelList" id="levelList"></div>
-          <div class="levelHint">Cube plus grand + moins de murs = plus facile. Fais défiler pour voir les 10 niveaux.</div>
-          <div class="devPanel hidden" id="devPanel">
+          <div class="sectionLbl">Réglages de la partie</div>
+          <div class="diffBadge" id="diffBadge">
+            <span>Niveau :</span>
+            <span id="diffLabel">Normal</span>
+          </div>
+          <div class="devPanel" id="devPanel">
             <div class="devRow">
               <label>Taille du cube <span id="devNVal">9 × 9</span></label>
               <input type="range" id="devN" min="5" max="16" step="1" value="9">
@@ -361,12 +355,12 @@
               <input type="range" id="devSpeed" min="1" max="10" step="1" value="4">
             </div>
             <div class="devRow">
-              <label>Accélération <span id="devRampVal">1.0×/pt</span></label>
-              <input type="range" id="devRamp" min="0" max="20" step="1" value="10">
+              <label>Accélération <span id="devRampVal">1.5×/pt</span></label>
+              <input type="range" id="devRamp" min="0" max="20" step="1" value="15">
             </div>
             <div class="devRow">
-              <label>Murs fixes <span id="devWallsVal">2</span></label>
-              <input type="range" id="devWalls" min="0" max="15" step="1" value="2">
+              <label>Murs fixes <span id="devWallsVal">0</span></label>
+              <input type="range" id="devWalls" min="0" max="15" step="1" value="0">
             </div>
             <div class="devRow devToggleRow">
               <label>Murs éclairs</label>
@@ -443,7 +437,7 @@
           </div>
           <div class="ruleItem">
             <div class="ruleIcon">⚙</div>
-            <div><b>Développeur</b><p>10ᵉ niveau : règle toi-même la taille du cube, la vitesse, les murs fixes, la fréquence des murs éclairs, les jokers et la visibilité du chemin.</p></div>
+            <div><b>Personnalisable</b><p>Seul mode du jeu : règle toi-même la taille du cube, la vitesse, les murs fixes, la fréquence des murs éclairs, les jokers et la visibilité du chemin, puis lance la partie.</p></div>
           </div>
         </div>
       </div>
@@ -545,44 +539,9 @@ const TIER_FX = {
   2: {boost:[0.46,0.85], slow:[2.2,1.3]},
   3: {boost:[0.42,0.95], slow:[2.4,1.5]},
 };
-const LEVELS = [
-  {key:'detente',   name:'Détente',   n:14, fixedWalls:0,  pop:null,
-    baseInterval:560, speedup:0.65, jokers:4, pathVisible:true, tier:1,
-    tag:'Cube géant · aucun danger'},
-  {key:'facile',    name:'Facile',    n:12, fixedWalls:0,  pop:null,
-    baseInterval:500, speedup:0.8,  jokers:3, pathVisible:true, tier:1,
-    tag:'Grand cube · aucun mur'},
-  {key:'normal',    name:'Normal',    n:9,  fixedWalls:2,  pop:null,
-    baseInterval:460, speedup:0.95, jokers:3, pathVisible:true, tier:1,
-    tag:'2 murs fixes'},
-  {key:'difficile', name:'Difficile', n:7,  fixedWalls:4,
-    pop:{max:1, minGap:9000, maxGap:14000, minDur:2500, maxDur:4000},
-    baseInterval:400, speedup:1.15, jokers:2, pathVisible:true, tier:2,
-    tag:'4 murs fixes + murs éclairs rares'},
-  {key:'expert',    name:'Expert',    n:6,  fixedWalls:6,
-    pop:{max:2, minGap:6000, maxGap:10000, minDur:2500, maxDur:4000},
-    baseInterval:340, speedup:1.35, jokers:1, pathVisible:true, tier:2,
-    tag:'6 murs fixes + murs éclairs fréquents'},
-  {key:'hitman',    name:'Hitman',    n:5,  fixedWalls:8,
-    pop:{max:2, minGap:4500, maxGap:8000, minDur:2500, maxDur:4000},
-    baseInterval:260, speedup:0, jokers:0, pathVisible:true, tier:3,
-    tag:'8 murs fixes · vitesse max direct · 0 joker'},
-  {key:'magicien',  name:'Magicien',  n:5,  fixedWalls:10,
-    pop:{max:2, minGap:4000, maxGap:7000, minDur:2800, maxDur:4200},
-    baseInterval:250, speedup:0, jokers:0, pathVisible:false, tier:3,
-    tag:'10 murs fixes · chemin invisible'},
-  {key:'divinite',  name:'Divinité',  n:5,  fixedWalls:12,
-    pop:{max:3, minGap:3200, maxGap:6000, minDur:3000, maxDur:4500},
-    baseInterval:230, speedup:0, jokers:0, pathVisible:false, tier:3,
-    tag:'12 murs fixes · chemin invisible'},
-  {key:'ironman',   name:'Iron Man',  n:5,  fixedWalls:0,
-    pop:{max:3, minGap:900, maxGap:1800, minDur:1500, maxDur:2500},
-    baseInterval:210, speedup:0, jokers:0, pathVisible:true, tier:3,
-    tag:'aucun mur fixe · murs éclairs en continu, très vite'},
-  {key:'dev', name:'Développeur', n:9, fixedWalls:2, pop:null,
-    baseInterval:460, speedup:0.95, jokers:3, pathVisible:true, tier:2,
-    tag:'Réglages libres ci-dessous', custom:true},
-];
+// La difficulté (murs, vitesse, jokers, chemin) se règle entièrement via le panneau
+// "Réglages de la partie" — le tier 2 pilote juste l'équilibrage boost/ralentisseur.
+const DEV_TIER = 2;
 
 /* ============================================================
    SON (synthétisé, Web Audio — aucun fichier requis)
@@ -888,8 +847,7 @@ function buildAdjacency(){
 /* ============================================================
    SNAKE / GAME STATE
 ============================================================ */
-let CURRENT_LEVEL = LEVELS[2]; // Normal par défaut
-let pendingLevelIdx = 2;
+let CURRENT_LEVEL = null;
 
 let body = [];
 let pendingTurn = null;
@@ -1760,25 +1718,7 @@ function selectUniverse(idx){
   refreshShapeIconColors();
 }
 
-const levelListEl = document.getElementById('levelList');
-LEVELS.forEach((lv, idx)=>{
-  const row = document.createElement('div');
-  row.className = 'levelRow' + (idx===pendingLevelIdx ? ' selected' : '');
-  row.dataset.idx = idx;
-  row.innerHTML =
-    '<div class="lvMain"><div class="lvName">'+(idx+1)+'. '+lv.name+'</div><div class="lvTag">'+lv.tag+'</div></div>'+
-    '<div class="lvSize">'+lv.n+'×'+lv.n+'</div>';
-  row.addEventListener('click', ()=>selectLevel(idx));
-  row.addEventListener('touchend', e=>{e.preventDefault(); selectLevel(idx);}, {passive:false});
-  levelListEl.appendChild(row);
-});
-function selectLevel(idx){
-  pendingLevelIdx = idx;
-  document.querySelectorAll('.levelRow').forEach(el=> el.classList.toggle('selected', Number(el.dataset.idx)===idx));
-  document.getElementById('devPanel').classList.toggle('hidden', !LEVELS[idx].custom);
-}
-
-/* ---------- Panneau Développeur (niveau entièrement personnalisable) ---------- */
+/* ---------- Panneau Personnalisable (réglages libres de la partie) ---------- */
 function bindRange(id, valId, fmt){
   const el = document.getElementById(id);
   const val = document.getElementById(valId);
@@ -1830,8 +1770,56 @@ function getDevLevel(){
     const maxCount = parseInt(document.getElementById('devPopMaxCount').value,10);
     pop = {max:maxCount, minGap, maxGap, minDur:dur, maxDur:dur+800};
   }
-  return {key:'dev', name:'Développeur', n, fixedWalls, pop, baseInterval, speedup, jokers, pathVisible:devPathOn, tier:2, tag:'Personnalisé', custom:true};
+  return {key:'custom', name:'Personnalisable', n, fixedWalls, pop, baseInterval, speedup, jokers, pathVisible:devPathOn, tier:DEV_TIER, tag:'Personnalisé', custom:true};
 }
+
+// Estimation grossière de la difficulté à partir des réglages actuels,
+// pour se repérer par rapport aux anciens paliers (Facile/Normal/Difficile/Expert...).
+// 6 paliers × 3 sous-niveaux chacun = 18 étiquettes couvrant tout le spectre de difficulté.
+const DIFF_TIERS = [
+  {name:'Détente',   color:'#39e6c3'},
+  {name:'Facile',    color:'#8cff3c'},
+  {name:'Normal',    color:'#ffd23c'},
+  {name:'Difficile', color:'#ff9d5c'},
+  {name:'Expert',    color:'#ff5c5c'},
+  {name:'Hardcore',  color:'#e0303c'},
+  {name:'Magicien',  color:'#b066ff'},
+  {name:'Dieu',      color:'#ffd700'},
+];
+function estimateDifficulty(){
+  const lvl = getDevLevel();
+  const sizeScore = (16 - lvl.n) / (16 - 5) * 25;
+  const speedScore = (650 - lvl.baseInterval) / (650 - 170) * 20;
+  const rampScore = Math.min(lvl.speedup / 2, 1) * 10;
+  const wallDensity = lvl.fixedWalls / (lvl.n * lvl.n);
+  const wallScore = Math.min(wallDensity / 0.15, 1) * 15;
+  let popScore = 0;
+  if (lvl.pop){
+    const avgGap = (lvl.pop.minGap + lvl.pop.maxGap) / 2;
+    const freqFactor = Math.min(1, 8000 / avgGap);
+    popScore = Math.min(6 + freqFactor*6 + Math.min(lvl.pop.max-1, 3), 15);
+  }
+  const jokerScore = (5 - lvl.jokers) / 5 * 10;
+  const pathScore = lvl.pathVisible ? 0 : 5;
+  const total = Math.max(0, Math.min(99.999,
+    sizeScore + speedScore + rampScore + wallScore + popScore + jokerScore + pathScore));
+  const tierWidth = 100 / DIFF_TIERS.length;
+  const tierIdx = Math.min(DIFF_TIERS.length-1, Math.floor(total / tierWidth));
+  const subWidth = tierWidth / 3;
+  const withinTier = total - tierIdx*tierWidth;
+  const subIdx = Math.min(2, Math.floor(withinTier / subWidth));
+  const tier = DIFF_TIERS[tierIdx];
+  return {label: tier.name + ' ' + (subIdx+1), color: tier.color};
+}
+function updateDifficultyBadge(){
+  const {label, color} = estimateDifficulty();
+  const lbl = document.getElementById('diffLabel');
+  const badge = document.getElementById('diffBadge');
+  if (lbl){ lbl.textContent = label; lbl.style.color = color; }
+  if (badge){ badge.style.borderColor = color; }
+}
+document.getElementById('devPanel').addEventListener('input', updateDifficultyBadge);
+document.getElementById('devPanel').addEventListener('click', updateDifficultyBadge);
 
 function showTab(name){
   document.querySelectorAll('.tabBtn').forEach(b=> b.classList.toggle('active', b.dataset.tab===name));
@@ -1846,8 +1834,7 @@ const gameOverScreen = document.getElementById('gameOverScreen');
 
 function startGame(){
   ensureAudio();
-  let level = LEVELS[pendingLevelIdx];
-  if (level.custom) level = getDevLevel();
+  const level = getDevLevel();
   setCubeSize(level.n);
   applyLevel(level);
   resetGame();
@@ -1877,11 +1864,14 @@ resize();
 /* ============================================================
    INITIAL BUILD
 ============================================================ */
-setCubeSize(N);
+const initLevel = getDevLevel();
+setCubeSize(initLevel.n);
 applyShape(selectedShape);
 rebuildWallPool();
 applySnakeColors(selectedCubeSkin);
+applyLevel(initLevel);
 resetGame();
+updateDifficultyBadge();
 
 /* ============================================================
    MAIN LOOP
