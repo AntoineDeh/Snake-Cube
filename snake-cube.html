@@ -226,6 +226,15 @@
   @keyframes tabIn{0%{opacity:0; transform:translateY(6px);} 100%{opacity:1; transform:translateY(0);}}
 
   .hidden{display:none !important;}
+  .modeGrid{display:grid; grid-template-columns:1fr 1fr; gap:8px;}
+  .modeCard{
+    border:1px solid var(--panel-line); border-radius:11px; padding:10px 8px; text-align:center;
+    background:#ffffff06; cursor:pointer; transition:border-color .15s ease, background .15s ease, transform .15s ease;
+  }
+  .modeCard .mName{font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:13px; color:var(--ink);}
+  .modeCard .mTag{font-size:8.5px; color:var(--ink-dim); margin-top:3px; letter-spacing:.02em;}
+  .modeCard.selected{border-color:var(--teal); background:#39e6c31f; box-shadow:0 0 14px #39e6c322; transform:scale(1.02);}
+
   .diffBadge{
     display:flex; justify-content:center; align-items:baseline; gap:6px;
     border:1px solid var(--panel-line); border-radius:10px; padding:9px 12px; margin-bottom:12px;
@@ -338,9 +347,12 @@
       </div>
 
       <div class="tabPanel" data-panel="play">
-        <p class="desc">Un organisme rampe sur les <b>6 faces</b> d'un cube en lévitation. Règle la partie à ta sauce et lance l'observation.</p>
+        <p class="desc">Un organisme rampe sur les <b>6 faces</b> d'un cube en lévitation. Choisis un niveau rapide ou règle tout toi-même.</p>
         <div class="section">
-          <div class="sectionLbl">Réglages de la partie</div>
+          <div class="sectionLbl">Niveau</div>
+          <div class="modeGrid" id="modeGrid"></div>
+        </div>
+        <div class="section" id="customSection">
           <div class="diffBadge" id="diffBadge">
             <span>Niveau :</span>
             <span id="diffLabel">Normal</span>
@@ -543,10 +555,23 @@ const TIER_FX = {
 // "Réglages de la partie" — le tier 2 pilote juste l'équilibrage boost/ralentisseur.
 const DEV_TIER = 2;
 
+// 3 niveaux rapides pour ne pas avoir à régler quoi que ce soit, + le mode Personnalisé (ci-dessous).
+const PRESET_MODES = [
+  {key:'facile', name:'Facile', tag:'Grand cube, tranquille',
+    n:12, fixedWalls:0, pop:null, baseInterval:500, speedup:0.8, jokers:4, pathVisible:true, tier:1},
+  {key:'moyen', name:'Moyen', tag:'Équilibré',
+    n:9, fixedWalls:1, pop:null, baseInterval:460, speedup:1.0, jokers:3, pathVisible:true, tier:1},
+  {key:'difficile', name:'Difficile', tag:'Petit cube, murs éclairs',
+    n:7, fixedWalls:4, pop:{max:1, minGap:8000, maxGap:13000, minDur:2500, maxDur:4000},
+    baseInterval:380, speedup:1.3, jokers:2, pathVisible:true, tier:2},
+];
+let selectedMode = 'moyen';
+
 /* ============================================================
    SON (synthétisé, Web Audio — aucun fichier requis)
 ============================================================ */
 let audioCtx = null;
+let musicGain = null;
 let soundOn = true;
 function ensureAudio(){
   if (!soundOn) return;
@@ -554,6 +579,9 @@ function ensureAudio(){
     const Ctx = window.AudioContext || window.webkitAudioContext;
     if (!Ctx) return;
     audioCtx = new Ctx();
+    musicGain = audioCtx.createGain();
+    musicGain.gain.value = 0.5;
+    musicGain.connect(audioCtx.destination);
   }
   if (audioCtx.state === 'suspended') audioCtx.resume();
 }
@@ -590,6 +618,53 @@ function sfxSlow(){ sweep(700,220,0.32,'sawtooth',0.14); }
 function sfxJump(){ sweep(500,780,0.11,'sine',0.16); sweep(780,420,0.14,'sine',0.12,0.1); }
 function sfxGameOver(){ beep(392,0.18,'square',0.15,0); beep(329.6,0.18,'square',0.15,0.16); beep(261.6,0.34,'square',0.17,0.32); }
 function sfxWallSpawn(){ beep(180,0.08,'square',0.13,0); beep(180,0.08,'square',0.13,0.13); }
+
+/* ---------- Musique de fond en boucle (entraînante, générée, aucun fichier) ---------- */
+const MUSIC_BPM = 132;
+const MUSIC_STEP_DUR = 60 / MUSIC_BPM / 2; // croches
+const MUSIC_BASS = [130.81,130.81,164.81,130.81, 146.83,146.83,196.00,164.81,
+                     130.81,130.81,174.61,130.81, 164.81,164.81,196.00,146.83];
+const MUSIC_LEAD = [523.25,659.25,783.99,659.25, 587.33,698.46,880.00,698.46,
+                     523.25,659.25,698.46,880.00, 659.25,783.99,880.00,987.77];
+let musicStep = 0;
+let musicNextStepTime = 0;
+function playMusicNote(freq, time, dur, type, vol){
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = type;
+  osc.frequency.setValueAtTime(freq, time);
+  gain.gain.setValueAtTime(0, time);
+  gain.gain.linearRampToValueAtTime(vol, time+0.01);
+  gain.gain.exponentialRampToValueAtTime(0.0001, time+dur);
+  osc.connect(gain).connect(musicGain);
+  osc.start(time); osc.stop(time+dur+0.02);
+}
+function playKick(time){
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(150, time);
+  osc.frequency.exponentialRampToValueAtTime(40, time+0.12);
+  gain.gain.setValueAtTime(0.22, time);
+  gain.gain.exponentialRampToValueAtTime(0.0001, time+0.14);
+  osc.connect(gain).connect(musicGain);
+  osc.start(time); osc.stop(time+0.16);
+}
+function scheduleMusicStep(time){
+  const i = musicStep % 16;
+  playMusicNote(MUSIC_BASS[i], time, MUSIC_STEP_DUR*0.9, 'triangle', 0.09);
+  if (musicStep % 2 === 0) playMusicNote(MUSIC_LEAD[i], time, MUSIC_STEP_DUR*0.55, 'square', 0.045);
+  if (i % 8 === 0) playKick(time);
+  musicStep++;
+}
+function musicScheduler(){
+  if (!soundOn || !audioCtx || !musicGain) return;
+  if (musicNextStepTime < audioCtx.currentTime) musicNextStepTime = audioCtx.currentTime;
+  while (musicNextStepTime < audioCtx.currentTime + 0.15){
+    scheduleMusicStep(musicNextStepTime);
+    musicNextStepTime += MUSIC_STEP_DUR;
+  }
+}
 function toggleSound(){
   soundOn = !soundOn;
   const btn = document.getElementById('muteBtn');
@@ -1821,6 +1896,24 @@ function updateDifficultyBadge(){
 document.getElementById('devPanel').addEventListener('input', updateDifficultyBadge);
 document.getElementById('devPanel').addEventListener('click', updateDifficultyBadge);
 
+const modeGridEl = document.getElementById('modeGrid');
+const MODE_LIST = [...PRESET_MODES, {key:'custom', name:'Personnalisé', tag:'Tout régler soi-même'}];
+MODE_LIST.forEach(m=>{
+  const card = document.createElement('div');
+  card.className = 'modeCard' + (m.key===selectedMode ? ' selected' : '');
+  card.dataset.key = m.key;
+  card.innerHTML = '<div class="mName">'+m.name+'</div><div class="mTag">'+m.tag+'</div>';
+  card.addEventListener('click', ()=>selectMode(m.key));
+  card.addEventListener('touchend', e=>{e.preventDefault(); selectMode(m.key);}, {passive:false});
+  modeGridEl.appendChild(card);
+});
+function selectMode(key){
+  selectedMode = key;
+  document.querySelectorAll('.modeCard').forEach(el=> el.classList.toggle('selected', el.dataset.key===key));
+  document.getElementById('customSection').classList.toggle('hidden', key!=='custom');
+}
+selectMode(selectedMode);
+
 function showTab(name){
   document.querySelectorAll('.tabBtn').forEach(b=> b.classList.toggle('active', b.dataset.tab===name));
   document.querySelectorAll('.tabPanel').forEach(p=> p.classList.toggle('hidden', p.dataset.panel!==name));
@@ -1834,7 +1927,7 @@ const gameOverScreen = document.getElementById('gameOverScreen');
 
 function startGame(){
   ensureAudio();
-  const level = getDevLevel();
+  const level = selectedMode==='custom' ? getDevLevel() : PRESET_MODES.find(m=>m.key===selectedMode);
   setCubeSize(level.n);
   applyLevel(level);
   resetGame();
@@ -1861,10 +1954,16 @@ window.addEventListener('resize', resize);
 window.addEventListener('orientationchange', ()=>setTimeout(resize,150));
 resize();
 
+function unlockAudioOnce(){
+  ensureAudio();
+  window.removeEventListener('pointerdown', unlockAudioOnce);
+}
+window.addEventListener('pointerdown', unlockAudioOnce, {once:true});
+
 /* ============================================================
    INITIAL BUILD
 ============================================================ */
-const initLevel = getDevLevel();
+const initLevel = selectedMode==='custom' ? getDevLevel() : PRESET_MODES.find(m=>m.key===selectedMode);
 setCubeSize(initLevel.n);
 applyShape(selectedShape);
 rebuildWallPool();
@@ -1891,6 +1990,8 @@ function animate(now){
   requestAnimationFrame(animate);
   const dt = Math.min(0.05, (now-lastTime)/1000);
   lastTime = now;
+
+  musicScheduler();
 
   cubeGroup.rotation.x += dt*0.055;
   cubeGroup.rotation.y += dt*0.085;
