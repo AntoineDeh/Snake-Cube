@@ -140,6 +140,16 @@
     display:flex; align-items:center; justify-content:center; font-size:15px; line-height:1;
   }
   #muteBtn:active{transform:scale(.9);}
+  #musicBtn{
+    position:absolute; z-index:10; pointer-events:auto;
+    top:calc(env(safe-area-inset-top,0px) + 146px); left:calc(env(safe-area-inset-left,0px) + 14px);
+    width:34px; height:34px; border-radius:9px; border:1px solid var(--panel-line);
+    background:var(--panel); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    display:flex; align-items:center; justify-content:center; font-size:15px; line-height:1;
+    transition:opacity .15s ease;
+  }
+  #musicBtn:active{transform:scale(.9);}
+  #musicBtn.off{opacity:.35; filter:grayscale(1);}
   #coinBadge{
     position:absolute; z-index:10; pointer-events:none;
     top:calc(env(safe-area-inset-top,0px) + 66px); right:calc(env(safe-area-inset-right,0px) + 14px);
@@ -221,9 +231,12 @@
   .shapeIcon.prism{clip-path:polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%); border-radius:0;}
   .shapeIcon.pyramide{clip-path:polygon(50% 0%, 0% 100%, 100% 100%); border-radius:0;}
   .shapeIcon.tetra{clip-path:polygon(50% 100%, 0% 0%, 100% 0%); border-radius:0;}
-  .shapeIcon.selected{border-color:#fff !important; box-shadow:0 0 14px currentColor; transform:scale(1.12) rotate(var(--r,0deg));}
+  .shapeIcon.selected{
+    filter: drop-shadow(0 0 2px #fff) drop-shadow(0 0 3px #fff) drop-shadow(0 0 9px currentColor);
+    transform:scale(1.16);
+  }
   .shapeIcon.locked{opacity:.32; filter:grayscale(.6);}
-  .shapeIcon.diamond.selected{transform:rotate(45deg) scale(1.15);}
+  .shapeIcon.diamond.selected{transform:rotate(45deg) scale(1.18);}
   .uniGrid{display:grid; grid-template-columns:repeat(3,1fr); gap:9px; max-width:280px; margin:0 auto;}
   .uniCard{
     border-radius:11px; border:2px solid transparent; cursor:pointer; padding:8px 4px 6px;
@@ -366,7 +379,8 @@
   <button id="quitBtn" aria-label="Retour au menu">
     <svg viewBox="0 0 24 24" fill="none" width="16" height="16"><path d="M4 11.5L12 4L20 11.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M6.5 10V19.5H17.5V10" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
   </button>
-  <button id="muteBtn" aria-label="Activer/couper le son">🔊</button>
+  <button id="muteBtn" aria-label="Activer/couper les effets sonores">🔊</button>
+  <button id="musicBtn" aria-label="Activer/couper la musique">🎵</button>
   <div id="coinBadge">🪙 <span id="coinVal">0</span></div>
 
   <div id="controls">
@@ -491,7 +505,7 @@
           </div>
           <div class="ruleItem">
             <div class="ruleIcon" style="color:var(--gold);">🪙</div>
-            <div><b>Pièces</b><p>Chaque boost ou ralentisseur ramassé donne aussi une pièce et des points bonus. Les pièces se dépensent dans l'onglet Apparence pour débloquer d'autres univers et formes de serpent, et restent d'une partie à l'autre.</p></div>
+            <div><b>Pièces</b><p>Chaque boost ou ralentisseur ramassé donne aussi une pièce et des points bonus — davantage si la partie est réglée plus difficile (jusqu'à ×4), puisque c'est plus risqué d'aller les chercher. Les pièces se dépensent dans l'onglet Apparence pour débloquer d'autres univers et formes de serpent, et restent d'une partie à l'autre.</p></div>
           </div>
           <div class="ruleItem">
             <div class="ruleIcon" style="color:#ffd23c;">⌒</div>
@@ -741,9 +755,10 @@ let selectedMode = 'moyen';
 ============================================================ */
 let audioCtx = null;
 let musicGain = null;
-let soundOn = true;
+let soundOn = true;  // effets sonores (sfx : manger, boost, saut...)
+let musicOn = true;  // musique de fond
 function ensureAudio(){
-  if (!soundOn) return;
+  if (!soundOn && !musicOn) return;
   if (!audioCtx){
     const Ctx = window.AudioContext || window.webkitAudioContext;
     if (!Ctx) return;
@@ -847,7 +862,7 @@ function scheduleMusicStep(time){
   musicStep++;
 }
 function musicScheduler(){
-  if (!soundOn || !audioCtx || !musicGain) return;
+  if (!musicOn || !audioCtx || !musicGain) return;
   if (!running || gameOver || paused) return; // musique uniquement pendant une partie active
   if (musicNextStepTime < audioCtx.currentTime) musicNextStepTime = audioCtx.currentTime;
   while (musicNextStepTime < audioCtx.currentTime + 0.15){
@@ -860,6 +875,13 @@ function toggleSound(){
   const btn = document.getElementById('muteBtn');
   if (btn) btn.textContent = soundOn ? '🔊' : '🔇';
   if (soundOn) ensureAudio();
+}
+function toggleMusic(){
+  musicOn = !musicOn;
+  const btn = document.getElementById('musicBtn');
+  if (btn) btn.textContent = musicOn ? '🎵' : '🎵';
+  if (btn) btn.classList.toggle('off', !musicOn);
+  if (musicOn) ensureAudio();
 }
 
 /* ============================================================
@@ -938,6 +960,8 @@ function makeGlowSprite(color, size){
   return spr;
 }
 
+/* Constellations : voir juste après la définition du cube (elles doivent tourner avec lui) */
+
 function makeFaceTexture(tint){
   const s = 512;
   const cv = document.createElement('canvas'); cv.width=cv.height=s;
@@ -967,6 +991,78 @@ function makeFaceTexture(tint){
 ============================================================ */
 const cubeGroup = new THREE.Group();
 scene.add(cubeGroup);
+
+/* ---------- Constellations : une vraie constellation par face, pour se repérer ---------- */
+// Attachées au cube (pas à la scène) : elles tournent avec lui, donc la constellation
+// associée à une face reste toujours visible dans la même direction que cette face.
+const CONST_SHAPES = {
+  grandeOurse: { // Grande Ourse (Chariot) : casserole + manche
+    points:[[0,0],[1.0,0.6],[1.0,-0.3],[0.0,-0.5],[1.9,1.6],[2.9,2.1],[3.8,1.7]],
+    edges:[[0,1],[1,2],[2,3],[3,0],[1,4],[4,5],[5,6]]
+  },
+  cassiopee: { // Cassiopée : forme en W
+    points:[[0,0],[0.9,1.0],[1.8,0.1],[2.7,1.0],[3.6,0]],
+    edges:[[0,1],[1,2],[2,3],[3,4]]
+  },
+  croixDuSud: { // Croix du Sud
+    points:[[1.5,3],[1.5,0],[0,1.4],[3,1.6]],
+    edges:[[0,1],[2,3]]
+  },
+  triangle: { // Triangle (Triangulum)
+    points:[[0,0],[2,0],[1,1.7]],
+    edges:[[0,1],[1,2],[2,0]]
+  },
+  scorpion: { // Scorpion : corps courbé + dard
+    points:[[0,2.2],[0.6,1.7],[1.1,1.1],[1.5,0.4],[1.9,-0.3],[2.5,-0.7],[3.1,-0.3]],
+    edges:[[0,1],[1,2],[2,3],[3,4],[4,5],[5,6]]
+  },
+  orion: { // Orion : épaules, ceinture, jambes
+    points:[[0,2],[3,2],[0.8,1],[1.5,1],[2.2,1],[0.3,0],[2.7,0]],
+    edges:[[0,2],[2,3],[3,4],[4,1],[2,5],[4,6]]
+  },
+};
+const FACE_CONSTELLATIONS = [
+  {normal:new THREE.Vector3( 1,0,0), shape:'grandeOurse'},
+  {normal:new THREE.Vector3(-1,0,0), shape:'cassiopee'},
+  {normal:new THREE.Vector3(0, 1,0), shape:'croixDuSud'},
+  {normal:new THREE.Vector3(0,-1,0), shape:'triangle'},
+  {normal:new THREE.Vector3(0,0, 1), shape:'scorpion'},
+  {normal:new THREE.Vector3(0,0,-1), shape:'orion'},
+];
+const constellationGroup = new THREE.Group();
+cubeGroup.add(constellationGroup);
+{
+  const CONST_RADIUS = 42;
+  const CONST_SCALE = 6.5;
+  const worldUp = new THREE.Vector3(0,1,0);
+  const lineVerts = [];
+  FACE_CONSTELLATIONS.forEach(fc=>{
+    const anchor = fc.normal.clone().multiplyScalar(CONST_RADIUS);
+    let right = new THREE.Vector3().crossVectors(worldUp, fc.normal);
+    if (right.lengthSq() < 1e-6) right.set(1,0,0);
+    right.normalize();
+    const up = new THREE.Vector3().crossVectors(fc.normal, right).normalize();
+    const pattern = CONST_SHAPES[fc.shape];
+    const cx = pattern.points.reduce((s,p)=>s+p[0],0)/pattern.points.length;
+    const cy = pattern.points.reduce((s,p)=>s+p[1],0)/pattern.points.length;
+    const world3D = pattern.points.map(([x,y])=>
+      anchor.clone().addScaledVector(right, (x-cx)*CONST_SCALE).addScaledVector(up, (y-cy)*CONST_SCALE)
+    );
+    pattern.edges.forEach(([a,b])=>{
+      lineVerts.push(world3D[a].x, world3D[a].y, world3D[a].z, world3D[b].x, world3D[b].y, world3D[b].z);
+    });
+    world3D.forEach(p=>{
+      const spr = makeGlowSprite(0xffffff, 2.6);
+      spr.position.copy(p);
+      spr.material.opacity = 0.95;
+      constellationGroup.add(spr);
+    });
+  });
+  const lineGeo = new THREE.BufferGeometry();
+  lineGeo.setAttribute('position', new THREE.Float32BufferAttribute(lineVerts, 3));
+  const lineMat = new THREE.LineBasicMaterial({color:0xcfe6ff, transparent:true, opacity:0.65});
+  constellationGroup.add(new THREE.LineSegments(lineGeo, lineMat));
+}
 
 const FACE_DEFS = [
   {normal:new THREE.Vector3( 1,0,0)},
@@ -1394,16 +1490,20 @@ function tick(){
   }
   if (fx === 'boost'){
     speedModifier = boostModifier(); speedModifierEnd = performance.now()+4500;
-    coins += COIN_VALUE; score += COIN_BONUS_SCORE;
-    stats.totalCoinsEarned += COIN_VALUE; stats.totalBoosts++;
-    showToast('Boost ! +'+COIN_VALUE+' pièce, +'+COIN_BONUS_SCORE+' pts');
+    const mult = coinMultiplierForCurrentLevel();
+    const coinGain = COIN_VALUE * mult, scoreGain = COIN_BONUS_SCORE * mult;
+    coins += coinGain; score += scoreGain;
+    stats.totalCoinsEarned += coinGain; stats.totalBoosts++;
+    showToast('Boost ! +'+coinGain+' pièce(s), +'+scoreGain+' pts');
     fillPowerups(); sfxBoost(); updateHUD(); checkChallenges();
   }
   if (fx === 'slow'){
     speedModifier = slowModifier(); speedModifierEnd = performance.now()+4500;
-    coins += COIN_VALUE; score += COIN_BONUS_SCORE;
-    stats.totalCoinsEarned += COIN_VALUE; stats.totalSlows++;
-    showToast('Ralenti… +'+COIN_VALUE+' pièce, +'+COIN_BONUS_SCORE+' pts');
+    const mult = coinMultiplierForCurrentLevel();
+    const coinGain = COIN_VALUE * mult, scoreGain = COIN_BONUS_SCORE * mult;
+    coins += coinGain; score += scoreGain;
+    stats.totalCoinsEarned += coinGain; stats.totalSlows++;
+    showToast('Ralenti… +'+coinGain+' pièce(s), +'+scoreGain+' pts');
     fillPowerups(); sfxSlow(); updateHUD(); checkChallenges();
   }
 
@@ -1961,6 +2061,8 @@ document.getElementById('quitConfirmBtn').addEventListener('click', ()=>{ docume
 document.getElementById('quitConfirmBtn').addEventListener('touchend', e=>{e.preventDefault(); document.getElementById('quitConfirm').classList.add('hidden'); quitToMenu();}, {passive:false});
 document.getElementById('muteBtn').addEventListener('click', toggleSound);
 document.getElementById('muteBtn').addEventListener('touchend', e=>{e.preventDefault(); toggleSound();}, {passive:false});
+document.getElementById('musicBtn').addEventListener('click', toggleMusic);
+document.getElementById('musicBtn').addEventListener('touchend', e=>{e.preventDefault(); toggleMusic();}, {passive:false});
 
 /* ---------- Easter egg : triple-tap sur le titre = mot de passe pour tout débloquer ---------- */
 let titleTapCount = 0;
@@ -2214,8 +2316,7 @@ const DIFF_TIERS = [
   {name:'Magicien',  color:'#b066ff'},
   {name:'Dieu',      color:'#ffd700'},
 ];
-function estimateDifficulty(){
-  const lvl = getDevLevel();
+function computeDifficultyScore(lvl){
   const sizeScore = (16 - lvl.n) / (16 - 5) * 25;
   const speedScore = (650 - lvl.baseInterval) / (650 - 170) * 20;
   const rampScore = Math.min(lvl.speedup / 2, 1) * 10;
@@ -2229,8 +2330,19 @@ function estimateDifficulty(){
   }
   const jokerScore = (5 - lvl.jokers) / 5 * 10;
   const pathScore = lvl.pathVisible ? 0 : 5;
-  const total = Math.max(0, Math.min(99.999,
+  return Math.max(0, Math.min(99.999,
     sizeScore + speedScore + rampScore + wallScore + popScore + jokerScore + pathScore));
+}
+// Plus la partie en cours est difficile, plus les pièces/points bonus d'un boost ou
+// ralentisseur rapportent — logique, puisque c'est plus risqué d'aller les chercher.
+function coinMultiplierForCurrentLevel(){
+  const lvl = CURRENT_LEVEL || getDevLevel();
+  const score = computeDifficultyScore(lvl);
+  return Math.max(1, 1 + Math.floor(score/25)); // 1x (facile) à 4x (extrême)
+}
+function estimateDifficulty(){
+  const lvl = getDevLevel();
+  const total = computeDifficultyScore(lvl);
   const tierWidth = 100 / DIFF_TIERS.length;
   const tierIdx = Math.min(DIFF_TIERS.length-1, Math.floor(total / tierWidth));
   const subWidth = tierWidth / 3;
