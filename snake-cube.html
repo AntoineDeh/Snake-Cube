@@ -127,21 +127,37 @@
   .jumpBtn:active{transform:scale(.88); box-shadow:0 2px 10px #00000066, 0 0 16px 2px #ffd23c88;}
   .jumpBtn.depleted{opacity:.35;}
 
-  .utilBtns{
-    display:flex; gap:6px; align-items:center; pointer-events:auto; align-self:flex-end;
-  }
-  #quitBtn, #muteBtn, #musicBtn{
+  #leftGroup{ display:flex; gap:8px; align-items:flex-start; }
+  #menuWrap{ position:relative; flex-shrink:0; pointer-events:auto; }
+  #menuToggle{
     pointer-events:auto;
     width:34px; height:34px; border-radius:9px; border:1px solid var(--panel-line);
     background:var(--panel); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
     display:flex; align-items:center; justify-content:center;
+    font-size:20px; color:var(--ink-dim); cursor:pointer; letter-spacing:0;
   }
-  #quitBtn{ color:var(--ink-dim); }
-  #quitBtn:active{ transform:scale(.9); color:var(--ink); }
-  #muteBtn, #musicBtn{ font-size:15px; line-height:1; }
-  #muteBtn:active, #musicBtn:active{ transform:scale(.9); }
-  #musicBtn{ transition:opacity .15s ease; }
-  #musicBtn.off{opacity:.35; filter:grayscale(1);}
+  #menuToggle:active{ transform:scale(.9); color:var(--ink); }
+  #menuDropdown{
+    position:absolute; top:calc(100% + 6px); left:0; z-index:25;
+    background:var(--panel); border:1px solid var(--panel-line); border-radius:12px;
+    backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+    overflow:hidden; min-width:185px;
+    box-shadow:0 8px 32px #00000080, 0 0 20px #39e6c311;
+    animation: panelIn .2s ease both;
+  }
+  .menuItem{
+    display:flex; align-items:center; gap:10px;
+    width:100%; padding:12px 14px;
+    border:none; border-bottom:1px solid var(--panel-line);
+    background:transparent; color:var(--ink);
+    font-family:'IBM Plex Mono', monospace; font-size:12px; letter-spacing:.03em;
+    cursor:pointer; pointer-events:auto; text-align:left;
+    transition:background .1s ease;
+  }
+  .menuItem:last-child{ border-bottom:none; }
+  .menuItem:hover{ background:#ffffff0a; }
+  .menuItem:active{ background:#ffffff16; }
+  .menuItem.off{ opacity:.4; filter:grayscale(1); }
   #coinBadge{
     display:flex; align-items:center; gap:4px; pointer-events:none;
     font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:12px; color:var(--gold);
@@ -348,9 +364,22 @@
   <div id="toast"></div>
 
   <div id="hud">
-    <div class="tag">
-      <div class="lbl"><span class="dot"></span>Score</div>
-      <div class="val" id="scoreVal">0</div>
+    <div id="leftGroup">
+      <div id="menuWrap">
+        <button id="menuToggle" aria-label="Menu">⋮</button>
+        <div id="menuDropdown" class="hidden">
+          <button class="menuItem" id="quitBtn">
+            <svg viewBox="0 0 24 24" fill="none" width="15" height="15"><path d="M4 11.5L12 4L20 11.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M6.5 10V19.5H17.5V10" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Retour au menu
+          </button>
+          <button class="menuItem" id="muteBtn">🔊 Sons</button>
+          <button class="menuItem" id="musicBtn">🎵 Musique</button>
+        </div>
+      </div>
+      <div class="tag">
+        <div class="lbl"><span class="dot"></span>Score</div>
+        <div class="val" id="scoreVal">0</div>
+      </div>
     </div>
     <div class="tag best">
       <div class="lbl" style="justify-content:flex-end;">Record<span class="dot"></span></div>
@@ -367,13 +396,6 @@
   </div>
 
   <div id="controls">
-    <div class="utilBtns">
-      <button id="quitBtn" aria-label="Retour au menu">
-        <svg viewBox="0 0 24 24" fill="none" width="16" height="16"><path d="M4 11.5L12 4L20 11.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M6.5 10V19.5H17.5V10" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </button>
-      <button id="muteBtn" aria-label="Activer/couper les effets sonores">🔊</button>
-      <button id="musicBtn" aria-label="Activer/couper la musique">🎵</button>
-    </div>
     <div class="gameBtns">
       <button class="turnBtn" id="btnLeft" aria-label="Tourner à gauche">
         <svg viewBox="0 0 24 24" fill="none"><path d="M15 5L8 12L15 19" stroke="#39e6c3" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -865,13 +887,13 @@ function musicScheduler(){
 function toggleSound(){
   soundOn = !soundOn;
   const btn = document.getElementById('muteBtn');
-  if (btn) btn.textContent = soundOn ? '🔊' : '🔇';
+  if (btn) btn.innerHTML = (soundOn ? '🔊' : '🔇') + ' Sons';
   if (soundOn) ensureAudio();
 }
 function toggleMusic(){
   musicOn = !musicOn;
   const btn = document.getElementById('musicBtn');
-  if (btn) btn.textContent = musicOn ? '🎵' : '🎵';
+  if (btn) btn.innerHTML = '🎵 Musique';
   if (btn) btn.classList.toggle('off', !musicOn);
   if (musicOn) ensureAudio();
 }
@@ -2052,16 +2074,42 @@ function closeQuitConfirm(){
   paused = false;
   document.getElementById('quitConfirm').classList.add('hidden');
 }
-document.getElementById('quitBtn').addEventListener('click', openQuitConfirm);
-document.getElementById('quitBtn').addEventListener('touchend', e=>{e.preventDefault(); openQuitConfirm();}, {passive:false});
-document.getElementById('quitCancelBtn').addEventListener('click', closeQuitConfirm);
-document.getElementById('quitCancelBtn').addEventListener('touchend', e=>{e.preventDefault(); closeQuitConfirm();}, {passive:false});
+function openMenu(){
+  if (running && !gameOver) paused = true;
+  document.getElementById('menuDropdown').classList.remove('hidden');
+}
+function closeMenu(resumeGame = true){
+  document.getElementById('menuDropdown').classList.add('hidden');
+  if (resumeGame && running && !gameOver){
+    paused = false;
+    lastTime = performance.now();
+  }
+}
+document.getElementById('menuToggle').addEventListener('click', ()=>{
+  const dd = document.getElementById('menuDropdown');
+  if (dd.classList.contains('hidden')) openMenu(); else closeMenu();
+});
+document.getElementById('menuToggle').addEventListener('touchend', e=>{
+  e.preventDefault();
+  const dd = document.getElementById('menuDropdown');
+  if (dd.classList.contains('hidden')) openMenu(); else closeMenu();
+}, {passive:false});
+document.addEventListener('click', e=>{
+  const mw = document.getElementById('menuWrap');
+  if (mw && !mw.contains(e.target) && !document.getElementById('menuDropdown').classList.contains('hidden')){
+    closeMenu();
+  }
+});
+document.getElementById('quitBtn').addEventListener('click', ()=>{ closeMenu(false); openQuitConfirm(); });
+document.getElementById('quitBtn').addEventListener('touchend', e=>{e.preventDefault(); closeMenu(false); openQuitConfirm();}, {passive:false});
+document.getElementById('quitCancelBtn').addEventListener('click', ()=>{ closeQuitConfirm(); lastTime = performance.now(); });
+document.getElementById('quitCancelBtn').addEventListener('touchend', e=>{e.preventDefault(); closeQuitConfirm(); lastTime = performance.now();}, {passive:false});
 document.getElementById('quitConfirmBtn').addEventListener('click', ()=>{ document.getElementById('quitConfirm').classList.add('hidden'); quitToMenu(); });
 document.getElementById('quitConfirmBtn').addEventListener('touchend', e=>{e.preventDefault(); document.getElementById('quitConfirm').classList.add('hidden'); quitToMenu();}, {passive:false});
-document.getElementById('muteBtn').addEventListener('click', toggleSound);
-document.getElementById('muteBtn').addEventListener('touchend', e=>{e.preventDefault(); toggleSound();}, {passive:false});
-document.getElementById('musicBtn').addEventListener('click', toggleMusic);
-document.getElementById('musicBtn').addEventListener('touchend', e=>{e.preventDefault(); toggleMusic();}, {passive:false});
+document.getElementById('muteBtn').addEventListener('click', ()=>{ closeMenu(); toggleSound(); });
+document.getElementById('muteBtn').addEventListener('touchend', e=>{e.preventDefault(); closeMenu(); toggleSound();}, {passive:false});
+document.getElementById('musicBtn').addEventListener('click', ()=>{ closeMenu(); toggleMusic(); });
+document.getElementById('musicBtn').addEventListener('touchend', e=>{e.preventDefault(); closeMenu(); toggleMusic();}, {passive:false});
 
 /* ---------- Easter egg : triple-tap sur le titre = mot de passe pour tout débloquer ---------- */
 let titleTapCount = 0;
