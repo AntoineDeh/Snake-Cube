@@ -88,9 +88,14 @@
   /* ---------- Touch controls ---------- */
   #controls{
     position:absolute; left:0; right:0; bottom:0; z-index:10;
-    display:flex; justify-content:space-between; align-items:flex-end;
+    display:flex; align-items:flex-end;
     padding: 0 calc(env(safe-area-inset-right,0px) + 20px) calc(env(safe-area-inset-bottom,0px) + 22px) calc(env(safe-area-inset-left,0px) + 20px);
     pointer-events:none;
+  }
+  .gameBtns{
+    position:absolute; left:50%; transform:translateX(-50%);
+    bottom: calc(env(safe-area-inset-bottom,0px) + 22px);
+    display:flex; gap:clamp(10px,2.5vw,20px); align-items:center; pointer-events:none;
   }
   .turnBtn{
     pointer-events:auto;
@@ -108,7 +113,6 @@
     background:radial-gradient(circle at 35% 30%, #1c2c5c 0%, #0c1026 70%);
     box-shadow:0 2px 10px #00000066, 0 0 16px 2px var(--teal-soft), inset 0 0 0 1px #39e6c355;
   }
-  #controls .spacer{flex:1;}
   .jumpBtn{
     pointer-events:auto;
     width:clamp(50px,13vw,60px); height:clamp(50px,13vw,60px);
@@ -118,7 +122,6 @@
     display:flex; align-items:center; justify-content:center;
     box-shadow:0 4px 18px #00000066, inset 0 0 0 1px #ffffff08;
     transition:transform .08s ease, background .12s ease, box-shadow .12s ease, opacity .2s ease;
-    align-self:center; margin:0 10px;
   }
   .jumpBtn svg{width:44%; height:44%; display:block;}
   .jumpBtn:active{transform:scale(.88); box-shadow:0 2px 10px #00000066, 0 0 16px 2px #ffd23c88;}
@@ -371,15 +374,17 @@
       <button id="muteBtn" aria-label="Activer/couper les effets sonores">🔊</button>
       <button id="musicBtn" aria-label="Activer/couper la musique">🎵</button>
     </div>
-    <button class="turnBtn" id="btnLeft" aria-label="Tourner à gauche">
-      <svg viewBox="0 0 24 24" fill="none"><path d="M15 5L8 12L15 19" stroke="#39e6c3" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    </button>
-    <button class="jumpBtn" id="btnJump" aria-label="Sauter par-dessus le corps">
-      <svg viewBox="0 0 24 24" fill="none"><path d="M3 17C6 17 6 8 12 8C18 8 18 17 21 17" stroke="#ffd23c" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    </button>
-    <button class="turnBtn" id="btnRight" aria-label="Tourner à droite">
-      <svg viewBox="0 0 24 24" fill="none"><path d="M9 5L16 12L9 19" stroke="#39e6c3" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    </button>
+    <div class="gameBtns">
+      <button class="turnBtn" id="btnLeft" aria-label="Tourner à gauche">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M15 5L8 12L15 19" stroke="#39e6c3" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <button class="jumpBtn" id="btnJump" aria-label="Sauter par-dessus le corps">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M3 17C6 17 6 8 12 8C18 8 18 17 21 17" stroke="#ffd23c" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <button class="turnBtn" id="btnRight" aria-label="Tourner à droite">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M9 5L16 12L9 19" stroke="#39e6c3" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
   </div>
 
   <div class="overlay" id="startScreen">
