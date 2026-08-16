@@ -124,39 +124,25 @@
   .jumpBtn:active{transform:scale(.88); box-shadow:0 2px 10px #00000066, 0 0 16px 2px #ffd23c88;}
   .jumpBtn.depleted{opacity:.35;}
 
-  #quitBtn{
-    position:absolute; z-index:10; pointer-events:auto;
-    top:calc(env(safe-area-inset-top,0px) + 66px); left:calc(env(safe-area-inset-left,0px) + 14px);
+  .utilBtns{
+    display:flex; gap:6px; align-items:center; pointer-events:auto; align-self:flex-end;
+  }
+  #quitBtn, #muteBtn, #musicBtn{
+    pointer-events:auto;
     width:34px; height:34px; border-radius:9px; border:1px solid var(--panel-line);
     background:var(--panel); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-    display:flex; align-items:center; justify-content:center; color:var(--ink-dim);
+    display:flex; align-items:center; justify-content:center;
   }
-  #quitBtn:active{transform:scale(.9); color:var(--ink);}
-  #muteBtn{
-    position:absolute; z-index:10; pointer-events:auto;
-    top:calc(env(safe-area-inset-top,0px) + 106px); left:calc(env(safe-area-inset-left,0px) + 14px);
-    width:34px; height:34px; border-radius:9px; border:1px solid var(--panel-line);
-    background:var(--panel); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-    display:flex; align-items:center; justify-content:center; font-size:15px; line-height:1;
-  }
-  #muteBtn:active{transform:scale(.9);}
-  #musicBtn{
-    position:absolute; z-index:10; pointer-events:auto;
-    top:calc(env(safe-area-inset-top,0px) + 146px); left:calc(env(safe-area-inset-left,0px) + 14px);
-    width:34px; height:34px; border-radius:9px; border:1px solid var(--panel-line);
-    background:var(--panel); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-    display:flex; align-items:center; justify-content:center; font-size:15px; line-height:1;
-    transition:opacity .15s ease;
-  }
-  #musicBtn:active{transform:scale(.9);}
+  #quitBtn{ color:var(--ink-dim); }
+  #quitBtn:active{ transform:scale(.9); color:var(--ink); }
+  #muteBtn, #musicBtn{ font-size:15px; line-height:1; }
+  #muteBtn:active, #musicBtn:active{ transform:scale(.9); }
+  #musicBtn{ transition:opacity .15s ease; }
   #musicBtn.off{opacity:.35; filter:grayscale(1);}
   #coinBadge{
-    position:absolute; z-index:10; pointer-events:none;
-    top:calc(env(safe-area-inset-top,0px) + 66px); right:calc(env(safe-area-inset-right,0px) + 14px);
-    background:var(--panel); border:1px solid var(--panel-line); border-radius:10px;
-    padding:6px 12px; display:flex; align-items:center; gap:5px;
-    font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:13px; color:var(--gold);
-    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    display:flex; align-items:center; gap:4px; pointer-events:none;
+    font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:12px; color:var(--gold);
+    margin-top:5px; justify-content:flex-end;
   }
 
   /* ---------- Overlays ---------- */
@@ -366,6 +352,7 @@
     <div class="tag best">
       <div class="lbl" style="justify-content:flex-end;">Record<span class="dot"></span></div>
       <div class="val" id="bestVal">0</div>
+      <div id="coinBadge">🪙 <span id="coinVal">0</span></div>
     </div>
   </div>
 
@@ -376,14 +363,14 @@
     </div>
   </div>
 
-  <button id="quitBtn" aria-label="Retour au menu">
-    <svg viewBox="0 0 24 24" fill="none" width="16" height="16"><path d="M4 11.5L12 4L20 11.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M6.5 10V19.5H17.5V10" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-  </button>
-  <button id="muteBtn" aria-label="Activer/couper les effets sonores">🔊</button>
-  <button id="musicBtn" aria-label="Activer/couper la musique">🎵</button>
-  <div id="coinBadge">🪙 <span id="coinVal">0</span></div>
-
   <div id="controls">
+    <div class="utilBtns">
+      <button id="quitBtn" aria-label="Retour au menu">
+        <svg viewBox="0 0 24 24" fill="none" width="16" height="16"><path d="M4 11.5L12 4L20 11.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M6.5 10V19.5H17.5V10" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <button id="muteBtn" aria-label="Activer/couper les effets sonores">🔊</button>
+      <button id="musicBtn" aria-label="Activer/couper la musique">🎵</button>
+    </div>
     <button class="turnBtn" id="btnLeft" aria-label="Tourner à gauche">
       <svg viewBox="0 0 24 24" fill="none"><path d="M15 5L8 12L15 19" stroke="#39e6c3" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </button>
@@ -2016,8 +2003,15 @@ document.getElementById('btnJump').addEventListener('mousedown', ()=>queueJump()
 window.addEventListener('keydown', e=>{
   if (['ArrowLeft','a','A'].includes(e.key)) queueTurn('L');
   else if (['ArrowRight','d','D'].includes(e.key)) queueTurn('R');
+  else if (e.key === ' ') queueJump();
   if (['ArrowLeft','ArrowRight',' '].includes(e.key)) e.preventDefault();
 });
+window.addEventListener('mousedown', e=>{
+  if (e.target.closest('button, input, select, a')) return;
+  if (e.button === 0) queueTurn('L');
+  else if (e.button === 2) queueTurn('R');
+});
+window.addEventListener('contextmenu', e=>{ if (running && !gameOver) e.preventDefault(); });
 
 let touchStartX=null, touchStartY=null, touchStartT=0;
 canvas.addEventListener('touchstart', e=>{
