@@ -95,8 +95,35 @@
   .gameBtns{
     position:absolute; left:50%; transform:translateX(-50%);
     bottom: calc(env(safe-area-inset-bottom,0px) + 22px);
-    display:flex; gap:clamp(20px,5vw,40px); align-items:center; pointer-events:none;
+    display:flex; gap:clamp(20px,5vw,40px); align-items:flex-end; pointer-events:none;
   }
+  .leftZone{ display:flex; flex-direction:column; align-items:center; gap:10px; }
+  @keyframes boostIdle{
+    0%,100%{ box-shadow:0 4px 18px #00000066, 0 0 6px 1px #4af0ff22, inset 0 0 0 1px #ffffff08; }
+    50%{ box-shadow:0 4px 18px #00000066, 0 0 16px 4px #4af0ff55, inset 0 0 0 1px #ffffff08; }
+  }
+  #boostBtn{
+    pointer-events:auto;
+    width:clamp(52px,14vw,64px); height:clamp(52px,14vw,64px);
+    border-radius:50%; border:1px solid #4af0ff55;
+    background:radial-gradient(circle at 35% 30%, #061824 0%, #030c12 70%);
+    backdrop-filter: blur(6px);
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px;
+    transition:transform .08s ease, background .15s ease, box-shadow .15s ease;
+    animation:boostIdle 2.4s ease-in-out infinite;
+  }
+  #boostBtn svg{ width:44%; height:44%; display:block; filter:drop-shadow(0 0 3px #4af0ffcc); }
+  #boostBtn .boostLabel{
+    font-size:6.5px; letter-spacing:.1em; color:#4af0ffaa;
+    font-family:'IBM Plex Mono',monospace; line-height:1; text-transform:uppercase;
+  }
+  #boostBtn.active{
+    animation:none;
+    transform:scale(.92);
+    background:radial-gradient(circle at 35% 30%, #0d3556 0%, #061828 70%);
+    box-shadow:0 2px 8px #00000066, 0 0 28px 10px #4af0ffbb, inset 0 0 0 1px #4af0ff88;
+  }
+  #boostBtn.active svg{ filter:drop-shadow(0 0 5px #fff); }
   .turnBtn{
     pointer-events:auto;
     width:clamp(58px,16vw,76px); height:clamp(58px,16vw,76px);
@@ -216,7 +243,7 @@
   .section{margin-bottom:16px; text-align:left;}
   .sectionLbl{
     font-size:9.5px; letter-spacing:.16em; color:var(--ink-dim); text-transform:uppercase;
-    margin-bottom:8px; text-align:center;
+    margin-bottom:14px; text-align:center;
   }
 
   .skinGrid{display:grid; grid-template-columns:repeat(5,1fr); gap:9px; max-width:280px; margin:0 auto;}
@@ -226,15 +253,19 @@
   }
   .skinDot.selected{border-color:#fff; box-shadow:0 0 0 3px #ffffff22, 0 0 14px currentColor; transform:scale(1.1);}
   .shapeGrid{display:grid; grid-template-columns:repeat(3,1fr); gap:14px; max-width:260px; margin:0 auto;}
+  #skinGrid > div{display:flex; flex-direction:column; align-items:center; gap:7px;}
+  .skinName{font-size:10px; color:var(--ink-dim); letter-spacing:.02em; text-align:center; line-height:1.3;}
   .shapeIcon{
-    width:36px; height:36px; margin:0 auto; border:2px solid transparent; cursor:pointer;
+    width:36px; height:36px; border:2px solid transparent; cursor:pointer; flex-shrink:0;
     transition:transform .15s ease, border-color .15s ease;
   }
   .shapeIcon.sphere{border-radius:50%;}
   .shapeIcon.cube{border-radius:7px;}
-  .shapeIcon.diamond{border-radius:5px; transform:rotate(45deg); width:28px; height:28px; margin:4px auto;}
-  .shapeIcon.prism,.shapeIcon.pyramide,.shapeIcon.tetra{border-radius:0; background:transparent !important;}
-  .shapeInner{width:100%; height:100%;}
+  .shapeIcon.diamond{border-radius:5px; transform:rotate(45deg); width:28px; height:28px;}
+  .shapeIcon.prism,.shapeIcon.pyramide,.shapeIcon.tetra{
+    border-radius:0; background:transparent !important; border:none; position:relative; overflow:visible;
+  }
+  .shapeInner{position:absolute; inset:0;}
   .shapeIcon.prism .shapeInner{clip-path:polygon(50% 2%, 98% 26%, 98% 74%, 50% 98%, 2% 74%, 2% 26%);}
   .shapeIcon.pyramide .shapeInner{clip-path:polygon(50% 8%, 4% 92%, 96% 92%);}
   .shapeIcon.tetra .shapeInner{clip-path:polygon(50% 92%, 4% 8%, 96% 8%);}
@@ -399,9 +430,17 @@
 
   <div id="controls">
     <div class="gameBtns">
-      <button class="turnBtn" id="btnLeft" aria-label="Tourner à gauche">
-        <svg viewBox="0 0 24 24" fill="none"><path d="M15 5L8 12L15 19" stroke="#39e6c3" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </button>
+      <div class="leftZone">
+        <button id="boostBtn" aria-label="Accélérer (maintenir enfoncé)">
+          <svg viewBox="0 0 24 24" fill="none" width="22" height="22">
+            <path d="M13 2L5 13H11L10 22L19 11H13Z" fill="#4af0ff"/>
+          </svg>
+          <span class="boostLabel">Boost</span>
+        </button>
+        <button class="turnBtn" id="btnLeft" aria-label="Tourner à gauche">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M15 5L8 12L15 19" stroke="#39e6c3" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
       <button class="jumpBtn" id="btnJump" aria-label="Sauter par-dessus le corps">
         <svg viewBox="0 0 24 24" fill="none"><path d="M3 17C6 17 6 8 12 8C18 8 18 17 21 17" stroke="#ffd23c" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </button>
@@ -471,7 +510,7 @@
             </div>
           </div>
         </div>
-        <div class="legend">◀ Gauche &nbsp;·&nbsp; Tout droit &nbsp;·&nbsp; Droite ▶ &nbsp;·&nbsp; bouton doré = saut</div>
+        <div class="legend">◀ Gauche &nbsp;·&nbsp; Tout droit &nbsp;·&nbsp; Droite ▶ &nbsp;·&nbsp; ⚡ maintenir = boost &nbsp;·&nbsp; ⌒ saut</div>
         <button class="btn" id="startBtn">Lancer l'observation</button>
       </div>
 
@@ -1248,6 +1287,7 @@ let best = 0;
 }
 let jokersLeft = 3;
 let pendingJump = false;
+let playerBoosting = false;
 let headJumpFlag = false;
 let baseTickInterval = 460;
 let speedModifier = 1;
@@ -1412,6 +1452,7 @@ function resetGame(){
   renderFrom = body.map(f=>cloneFrame(f));
   pendingTurn = null;
   pendingJump = false;
+  playerBoosting = false;
   headJumpFlag = false;
   score = 0;
   jokersLeft = CURRENT_LEVEL.jokers;
@@ -2022,18 +2063,36 @@ function queueJump(){
   if (jokersLeft <= 0){ showToast('Aucun joker restant'); return; }
   pendingJump = true;
 }
+function startBoost(){
+  if (!running || gameOver || paused) return;
+  playerBoosting = true;
+  document.getElementById('boostBtn').classList.add('active');
+}
+function stopBoost(){
+  playerBoosting = false;
+  document.getElementById('boostBtn').classList.remove('active');
+}
 document.getElementById('btnLeft').addEventListener('touchstart', e=>{e.preventDefault(); queueTurn('L');}, {passive:false});
 document.getElementById('btnRight').addEventListener('touchstart', e=>{e.preventDefault(); queueTurn('R');}, {passive:false});
 document.getElementById('btnLeft').addEventListener('mousedown', ()=>queueTurn('L'));
 document.getElementById('btnRight').addEventListener('mousedown', ()=>queueTurn('R'));
 document.getElementById('btnJump').addEventListener('touchstart', e=>{e.preventDefault(); queueJump();}, {passive:false});
 document.getElementById('btnJump').addEventListener('mousedown', ()=>queueJump());
+document.getElementById('boostBtn').addEventListener('touchstart', e=>{e.preventDefault(); startBoost();}, {passive:false});
+document.getElementById('boostBtn').addEventListener('touchend', e=>{e.preventDefault(); stopBoost();}, {passive:false});
+document.getElementById('boostBtn').addEventListener('touchcancel', stopBoost);
+document.getElementById('boostBtn').addEventListener('mousedown', startBoost);
+window.addEventListener('mouseup', stopBoost);
 
 window.addEventListener('keydown', e=>{
   if (['ArrowLeft','a','A'].includes(e.key)) queueTurn('L');
   else if (['ArrowRight','d','D'].includes(e.key)) queueTurn('R');
   else if (e.key === ' ') queueJump();
-  if (['ArrowLeft','ArrowRight',' '].includes(e.key)) e.preventDefault();
+  else if (e.key === 'ArrowUp' && !e.repeat) startBoost();
+  if (['ArrowLeft','ArrowRight',' ','ArrowUp'].includes(e.key)) e.preventDefault();
+});
+window.addEventListener('keyup', e=>{
+  if (e.key === 'ArrowUp') stopBoost();
 });
 window.addEventListener('mousedown', e=>{
   if (e.target.closest('button, input, select, a')) return;
@@ -2561,7 +2620,7 @@ function animate(now){
   renderWalls(now);
 
   if (running && !gameOver && !paused){
-    const effectiveInterval = Math.max(70, baseTickInterval * speedModifier);
+    const effectiveInterval = Math.max(70, baseTickInterval * speedModifier * (playerBoosting ? 0.5 : 1));
     tickAccum += dt*1000;
     while (tickAccum >= effectiveInterval){
       tickAccum -= effectiveInterval;
